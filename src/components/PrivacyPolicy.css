@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=STIX+Two+Text:ital@0;1&display=swap');
+
+.pp-root {
+  background: #0e1117;
+  min-height: 100vh;
+  padding: 60px 16px;
+  font-family: 'Space Mono', monospace;
+  color: #e2e8f0;
+}
+
+.pp-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+.pp-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.pp-logo {
+  font-family: 'STIX Two Text', serif;
+  font-style: italic;
+  font-size: 40px;
+  color: #c9a84c;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.pp-title {
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
+.pp-date {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #3a4155;
+  margin: 0;
+}
+
+/* ── BODY ───────────────────────────────────────────────── */
+.pp-body {
+  background: #161b27;
+  border: 1px solid #2a3145;
+  border-radius: 16px;
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* ── SECTION ────────────────────────────────────────────── */
+.pp-section h2 {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #c9a84c;
+  margin: 0 0 14px;
+  font-weight: 700;
+}
+
+.pp-section p,
+.pp-section ul {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #94a3b8;
+  margin: 0 0 10px;
+}
+
+.pp-section p:last-child,
+.pp-section ul:last-child {
+  margin-bottom: 0;
+}
+
+.pp-section ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pp-section ul li {
+  list-style: none;
+  position: relative;
+  padding-left: 16px;
+}
+
+.pp-section ul li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: #c9a84c;
+  font-size: 10px;
+}
+
+.pp-section a {
+  color: #c9a84c;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.3);
+  transition: border-color 0.2s;
+}
+
+.pp-section a:hover {
+  border-color: #c9a84c;
+}
+
+.pp-section strong {
+  color: #e2e8f0;
+  font-weight: 700;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .pp-body {
+    padding: 28px 20px;
+  }
+}

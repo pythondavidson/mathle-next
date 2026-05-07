@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=STIX+Two+Text:ital@0;1&display=swap');
+
+.footer {
+  width: 100%;
+  background: #0e1117;
+  border-top: 1px solid #2a3145;
+  padding: 32px 20px 24px;
+  box-sizing: border-box;
+  font-family: 'Space Mono', monospace;
+}
+
+.footer-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ── MARCA ──────────────────────────────────────────────── */
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-logo {
+  font-family: 'STIX Two Text', serif;
+  font-style: italic;
+  font-size: 28px;
+  color: #c9a84c;
+  letter-spacing: 2px;
+}
+
+.footer-tagline {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── NAV ────────────────────────────────────────────────── */
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+}
+
+.footer-link {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #64748b;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: color .2s, background .2s;
+}
+.footer-link:hover {
+  color: #c9a84c;
+  background: rgba(201,168,76,.06);
+}
+
+/* ── BOTTOM ─────────────────────────────────────────────── */
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.footer-copy {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #2a3145;
+}
+
+.footer-sep {
+  font-size: 9px;
+  color: #2a3145;
+}
+
+.footer-link--small {
+  font-size: 9px;
+  padding: 2px 6px;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .footer { padding: 24px 16px 20px; }
+  .footer-logo { font-size: 22px; }
+}

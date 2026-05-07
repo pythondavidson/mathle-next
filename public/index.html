@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- ══════════════════════════════════════════════════════
+         BÁSICO
+    ══════════════════════════════════════════════════════ -->
+    <title>Mathle — El juego de matemáticas diario</title>
+    <meta name="description" content="Mathle es el Wordle de las matemáticas. Adivina los valores que hacen válida la ecuación en 6 intentos. Un puzzle nuevo cada día, modo contrareloj y ranking global. ¡Gratis!" />
+    <meta name="keywords" content="mathle, wordle matematicas, juego matematicas diario, ecuacion del dia, puzzle matematico, juego numeros, contrareloj matematicas, adivina la ecuacion" />
+    <meta name="author" content="Mathle" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <meta name="theme-color" content="#0e1117" />
+    <meta name="application-name" content="Mathle" />
+    <link rel="canonical" href="https://mathle.online" />
+
+    <!-- ══════════════════════════════════════════════════════
+         OPEN GRAPH (Facebook, WhatsApp, LinkedIn, Discord)
+    ══════════════════════════════════════════════════════ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mathle" />
+    <meta property="og:title" content="Mathle — El juego de matemáticas diario" />
+    <meta property="og:description" content="El Wordle de las matemáticas. Adivina los valores que hacen válida la ecuación en 6 intentos. Un puzzle nuevo cada día. ¡Gratis!" />
+    <meta property="og:url" content="https://mathle.online" />
+    <meta property="og:image" content="https://mathle.online/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Mathle — Adivina la ecuación en 6 intentos" />
+    <meta property="og:locale" content="es_ES" />
+
+    <!-- ══════════════════════════════════════════════════════
+         TWITTER / X CARDS
+    ══════════════════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@mathle_online" />
+    <meta name="twitter:title" content="Mathle — El juego de matemáticas diario" />
+    <meta name="twitter:description" content="El Wordle de las matemáticas. Adivina los valores que hacen válida la ecuación en 6 intentos. Un puzzle nuevo cada día." />
+    <meta name="twitter:image" content="https://mathle.online/og-image.png" />
+    <meta name="twitter:image:alt" content="Mathle — Adivina la ecuación en 6 intentos" />
+
+    <!-- ══════════════════════════════════════════════════════
+         SCHEMA.ORG — Rich Results en Google
+    ══════════════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Mathle",
+      "url": "https://mathle.online",
+      "description": "Mathle es el Wordle de las matemáticas. Adivina los valores que hacen válida la ecuación en 6 intentos. Un puzzle nuevo cada día, gratis.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "inLanguage": "es",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Mathle",
+        "url": "https://mathle.online"
+      },
+      "genre": "Puzzle",
+      "keywords": "matematicas, wordle, ecuacion, puzzle diario, contrareloj",
+      "screenshot": "https://mathle.online/og-image.png",
+      "featureList": [
+        "Ecuación del día",
+        "Modo contrareloj",
+        "Ranking global",
+        "Gratis"
+      ]
+    }
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════
+         FAQ SCHEMA — sube la posición en Google
+    ══════════════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Qué es Mathle?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Mathle es el juego de matemáticas diario, similar al Wordle pero con ecuaciones. Tienes 6 intentos para adivinar los valores que hacen válida la ecuación del día."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo se juega Mathle?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Rellena los huecos de la ecuación con números. Si el valor está en la posición correcta se muestra en verde, si existe pero en otra posición en amarillo, y si no aparece en rojo. Tienes 6 intentos."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Es gratis Mathle?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sí, Mathle es completamente gratuito. Puedes jugar sin registrarte, aunque crear una cuenta te permite guardar tu racha y aparecer en el ranking global."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cada cuánto cambia la ecuación?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La ecuación del modo diario cambia cada día a medianoche. Además hay un modo contrareloj donde puedes resolver tantas ecuaciones como puedas en 60 segundos."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════
+         PWA — Progressive Web App
+    ══════════════════════════════════════════════════════ -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+    <!-- ══════════════════════════════════════════════════════
+         PRECONNECT — carga más rápida de fuentes
+    ══════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body>
+    <noscript>Mathle necesita JavaScript para funcionar. Por favor actívalo en tu navegador.</noscript>
+    <div id="root"></div>
+    
+    <a href="/privacidad" style="display:none">Política de privacidad</a>
+  </body>
+</html>

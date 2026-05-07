@@ -1,0 +1,280 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=STIX+Two+Text:ital@0;1&display=swap');
+
+.perfil-root {
+  background: #0e1117;
+  color: #e2e8f0;
+  font-family: 'Space Mono', monospace;
+  min-height: 100vh;
+  padding-top: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 64px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.perfil-loading, .perfil-error {
+  margin-top: 80px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: #64748b;
+}
+
+/* ── CABECERA ───────────────────────────────────────────── */
+.perfil-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 480px;
+  background: #161b27;
+  border: 1px solid #2a3145;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.perfil-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(201,168,76,.15);
+  border: 2px solid #c9a84c;
+  color: #c9a84c;
+  font-family: 'STIX Two Text', serif;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.perfil-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.perfil-username {
+  font-family: 'STIX Two Text', serif;
+  font-style: italic;
+  font-size: 26px;
+  color: #c9a84c;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.perfil-email {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── MÉTRICAS ───────────────────────────────────────────── */
+.perfil-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.perfil-stat {
+  background: #161b27;
+  border: 1px solid #2a3145;
+  border-radius: 12px;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.perfil-stat-val {
+  font-family: 'STIX Two Text', serif;
+  font-size: 30px;
+  color: #c9a84c;
+}
+
+.perfil-stat-lbl {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #64748b;
+  text-align: center;
+}
+
+/* ── GRÁFICO ────────────────────────────────────────────── */
+.perfil-chart-wrap {
+  width: 100%;
+  max-width: 480px;
+  background: #161b27;
+  border: 1px solid #2a3145;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.perfil-chart-title {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.perfil-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  height: 100px;
+}
+
+.perfil-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.perfil-bar-track {
+  width: 100%;
+  height: 80px;
+  background: #0e1117;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.perfil-bar-fill {
+  width: 100%;
+  background: #2a3145;
+  border-radius: 4px;
+  transition: height .4s ease;
+}
+
+.perfil-bar-fill.played { background: #c9a84c; }
+.perfil-bar-fill.won    { background: #4ade80; }
+
+.perfil-bar-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.perfil-bar-pts {
+  font-size: 8px;
+  color: #c9a84c;
+}
+
+/* ── CERRAR SESIÓN ──────────────────────────────────────── */
+.perfil-logout-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border-radius: 8px;
+  border: 1px solid #2a3145;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all .2s;
+  width: 100%;
+  max-width: 480px;
+}
+.perfil-logout-btn:hover { color: #e2e8f0; border-color: #3a4155; }
+
+/* ── ZONA DE PELIGRO ────────────────────────────────────── */
+.perfil-danger-zone {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(248,113,113,.04);
+  border: 1px solid rgba(248,113,113,.15);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.perfil-danger-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f87171;
+  margin: 0;
+}
+
+.perfil-delete-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 11px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(248,113,113,.4);
+  background: transparent;
+  color: #f87171;
+  cursor: pointer;
+  transition: all .2s;
+  align-self: flex-start;
+}
+.perfil-delete-btn:hover { background: rgba(248,113,113,.08); }
+
+.perfil-confirm { display: flex; flex-direction: column; gap: 12px; }
+
+.perfil-confirm-text {
+  font-size: 12px;
+  color: #e2e8f0;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.perfil-confirm-btns { display: flex; gap: 10px; }
+
+.perfil-confirm-cancel, .perfil-confirm-yes, .perfil-confirm-final {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  border-radius: 7px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all .2s;
+  background: transparent;
+}
+
+.perfil-confirm-cancel { color: #64748b; border-color: #2a3145; }
+.perfil-confirm-cancel:hover { color: #e2e8f0; border-color: #3a4155; }
+
+.perfil-confirm-yes { color: #f87171; border-color: rgba(248,113,113,.4); }
+.perfil-confirm-yes:hover { background: rgba(248,113,113,.08); }
+
+.perfil-confirm-final {
+  color: #0e1117;
+  background: #f87171;
+  border-color: #f87171;
+  font-weight: 700;
+}
+.perfil-confirm-final:hover:not(:disabled) { background: #ef4444; border-color: #ef4444; }
+.perfil-confirm-final:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .perfil-root { padding-top: 80px; }
+}
+@media (max-width: 400px) {
+  .perfil-header { flex-direction: column; text-align: center; }
+  .perfil-stats  { grid-template-columns: 1fr 1fr; }
+}

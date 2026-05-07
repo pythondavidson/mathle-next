@@ -1,0 +1,519 @@
+'use client';
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import "./DailyGame.css";
+import { saveDailyScore, isLoggedIn } from "../services/api";
+
+const EQUATIONS = [
+  // ── FÁCIL ──
+  { eq: "? + 7 = 10",        blanks: [3],         difficulty: "fácil" },
+  { eq: "2 × ? = 12",        blanks: [6],         difficulty: "fácil" },
+  { eq: "8 − ? = 2",         blanks: [6],         difficulty: "fácil" },
+  { eq: "2 × ? + 3 = 11",    blanks: [4],         difficulty: "fácil" },
+  { eq: "10 ÷ ? = 2",        blanks: [5],         difficulty: "fácil" },
+  { eq: "? + 2 + 4 = 9",     blanks: [3],         difficulty: "fácil" },
+  { eq: "3 × ? − 2 = 10",    blanks: [4],         difficulty: "fácil" },
+  // ── MEDIO ──
+  { eq: "?^2 − ? = 7",           blanks: [3, 2],  difficulty: "medio" },
+  { eq: "?^2 + ? = 12",          blanks: [3, 3],  difficulty: "medio" },
+  { eq: "3 × ? − ? = 4",         blanks: [4, 8],  difficulty: "medio" },
+  { eq: "(? + 1) × ? = 15",      blanks: [4, 3],  difficulty: "medio" },
+  { eq: "2 × ? + 3 × ? = 17",    blanks: [4, 3],  difficulty: "medio" },
+  { eq: "?^2 − ?^2 = 5",         blanks: [3, 2],  difficulty: "medio" },
+  // ── DIFÍCIL ──
+  { eq: "?^2 + 2 × ? = 22",          blanks: [4, 3],  difficulty: "difícil" },
+  { eq: "(? + 1) × (? − 1) = 8",     blanks: [3, 3],  difficulty: "difícil" },
+  { eq: "? + ? = 8",                  blanks: [3, 5],  difficulty: "difícil" },
+  { eq: "?^3 − 2 × ? = 2",           blanks: [2, 3],  difficulty: "difícil" },
+  { eq: "?^2 × 3 − ? = 23",          blanks: [3, 4],  difficulty: "difícil" },
+  // ── AVANZADO ──
+  { eq: "? × ? + ? = ? × ? − ?",      blanks: [3,3,1,2,5,0], difficulty: "avanzado" },
+  { eq: "? + ? × ? = ? × ? − ?",      blanks: [2,3,4,2,7,0], difficulty: "avanzado" },
+  { eq: "?^2 + ? + ? = ? × ? − ?",    blanks: [2,2,3,3,3,0], difficulty: "avanzado" },
+  { eq: "? × ? × ? = ? + ? + ?",      blanks: [2,2,3,4,4,4], difficulty: "avanzado" },
+  { eq: "? + ? × ? + ? = ? × ?",      blanks: [1,2,3,2,3,3], difficulty: "avanzado" },
+  { eq: "?^2 + ? × ? = ? + ? + ?",    blanks: [3,1,2,7,3,1], difficulty: "avanzado" },
+];
+
+const DAILY_EQUATIONS = EQUATIONS.filter(e => e.difficulty === "avanzado" && e.blanks.length === 6);
+
+const MAX_ATTEMPTS = 6;
+
+function todayKey() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getDailyEquation() {
+  const key = todayKey();
+  const dateNum = parseInt(key.replace(/-/g, ""), 10);
+  const idx = dateNum % DAILY_EQUATIONS.length;
+  return DAILY_EQUATIONS[idx];
+}
+
+function fmtTime(s) {
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function parseEquation(eqStr) {
+  const tokens = [];
+  let buf = "";
+  let bi = 0;
+  for (let i = 0; i < eqStr.length; i++) {
+    const ch = eqStr[i];
+    if (ch === "?") {
+      if (buf) { tokens.push({ type: "frag", text: buf }); buf = ""; }
+      tokens.push({ type: "blank", index: bi++ });
+    } else { buf += ch; }
+  }
+  if (buf) tokens.push({ type: "frag", text: buf });
+  return tokens;
+}
+
+function superscriptify(text) {
+  return text.replace(/\^([^\s+\-×÷=()^?]+)/g, "<sup>$1</sup>");
+}
+
+function loadStats() {
+  if (typeof window === 'undefined') return { streak: 0, solved: 0, lastDate: "" };
+  try { return JSON.parse(localStorage.getItem("mathleStats2")) || { streak: 0, solved: 0, lastDate: "" }; }
+  catch { return { streak: 0, solved: 0, lastDate: "" }; }
+}
+function saveStats(s) { localStorage.setItem("mathleStats2", JSON.stringify(s)); }
+
+function saveAttempt(ans, states) {
+  const key = `mathleDay-${todayKey()}`;
+  const prev = JSON.parse(localStorage.getItem(key) || "[]");
+  prev.push({ ans, states });
+  localStorage.setItem(key, JSON.stringify(prev));
+}
+function loadDayAttempts() {
+  return JSON.parse(localStorage.getItem(`mathleDay-${todayKey()}`) || "[]");
+}
+
+export default function DailyGame() {
+  const router = useRouter();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  const [screen, setScreen] = useState("idle");
+  const [eq, setEq] = useState(null);
+  const [parsed, setParsed] = useState([]);
+  const [currentRow, setCurrentRow] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+  const [stats, setStats] = useState(loadStats());
+  const [toast, setToast] = useState({ msg: "", error: false, show: false });
+  const [result, setResult] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [values, setValues] = useState(Array.from({ length: MAX_ATTEMPTS }, () => []));
+  const [cellStates, setCellStates] = useState(Array.from({ length: MAX_ATTEMPTS }, () => []));
+  const [rowAnim, setRowAnim] = useState(Array(MAX_ATTEMPTS).fill(""));
+  const [flippingCells, setFlippingCells] = useState({});
+
+  const timerRef = useRef(null);
+  const inputRefs = useRef({});
+  const toastTimerRef = useRef(null);
+  const gameOverRef = useRef(false);
+  const finalSecondsRef = useRef(0);
+
+  function startGame() {
+    const chosen = getDailyEquation();
+    const p = parseEquation(chosen.eq);
+    setEq(chosen);
+    setParsed(p);
+    setValues(Array.from({ length: MAX_ATTEMPTS }, () => Array(chosen.blanks.length).fill("")));
+    setCellStates(Array.from({ length: MAX_ATTEMPTS }, () => Array(chosen.blanks.length).fill("")));
+    setCurrentRow(0);
+    setAttempts(0);
+    setGameOver(false);
+    setResult(null);
+    setShowModal(false);
+    setRowAnim(Array(MAX_ATTEMPTS).fill(""));
+    setFlippingCells({});
+    gameOverRef.current = false;
+  }
+
+  useEffect(() => {
+    if (screen !== "game") return;
+    startGame();
+    setSeconds(0);
+    finalSecondsRef.current = 0;
+    timerRef.current = setInterval(() => {
+      if (!gameOverRef.current) {
+        setSeconds(s => {
+          finalSecondsRef.current = s + 1;
+          return s + 1;
+        });
+      }
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [screen]);
+
+  useEffect(() => {
+    if (screen === "game") {
+      setTimeout(() => inputRefs.current["0-0"]?.focus(), 120);
+    }
+  }, [screen]);
+
+  const showToast = useCallback((msg, error = false) => {
+    setToast({ msg, error, show: true });
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 2400);
+  }, []);
+
+  function handleInput(r, ci, val) {
+    if (r !== currentRow) return;
+    const trimmed = val.length > 1 ? val.slice(-1) : val;
+    if (trimmed !== "" && trimmed !== "-" && !/^-?\d$/.test(trimmed)) return;
+    setValues(prev => {
+      const next = prev.map(row => [...row]);
+      next[r][ci] = trimmed;
+      return next;
+    });
+    if (trimmed !== "" && trimmed !== "-" && ci < eq.blanks.length - 1) {
+      setTimeout(() => inputRefs.current[`${r}-${ci + 1}`]?.focus(), 0);
+    }
+  }
+
+  function handleKeyDown(e, r, ci) {
+    if (r !== currentRow) return;
+    if (e.key === "Backspace" && values[r][ci] === "" && ci > 0) {
+      setValues(prev => {
+        const next = prev.map(row => [...row]);
+        next[r][ci - 1] = "";
+        return next;
+      });
+      setTimeout(() => inputRefs.current[`${r}-${ci - 1}`]?.focus(), 0);
+    }
+    if (e.key === "Enter") attemptVerify(r);
+  }
+
+  function allFilled(r) {
+    if (!eq) return false;
+    return values[r].every(v => v !== "" && v !== "-");
+  }
+
+  function buildExpr(r) {
+    let blankIdx = 0;
+    let expr = "";
+    for (const token of parsed) {
+      if (token.type === "frag") { expr += token.text; }
+      else { const v = values[r][blankIdx]; expr += (v === "" || v === "-") ? "?" : v; blankIdx++; }
+    }
+    return expr;
+  }
+
+  function evalSide(expr) {
+    let pos = 0;
+    const skipSpaces = () => { while (expr[pos] === " ") pos++; };
+    const peek = () => { skipSpaces(); return expr[pos] || ""; };
+    const consume = () => { skipSpaces(); return expr[pos++] || ""; };
+    const parseExpr = () => {
+      let left = parseTerm();
+      while (peek() === "+" || peek() === "−" || peek() === "-") {
+        const op = consume(); left = op === "+" ? left + parseTerm() : left - parseTerm();
+      }
+      return left;
+    };
+    const parseTerm = () => {
+      let left = parsePower();
+      while (peek() === "×" || peek() === "÷" || peek() === "*" || peek() === "/") {
+        const op = consume(); left = (op === "×" || op === "*") ? left * parsePower() : left / parsePower();
+      }
+      return left;
+    };
+    const parsePower = () => {
+      let base = parseAtom();
+      if (peek() === "^") { consume(); base = Math.pow(base, parsePower()); }
+      return base;
+    };
+    const parseAtom = () => {
+      if (peek() === "(") { consume(); const v = parseExpr(); consume(); return v; }
+      if (peek() === "-" || peek() === "−") { consume(); return -parseAtom(); }
+      let numStr = "";
+      while (/[\d.]/.test(expr[pos])) numStr += expr[pos++];
+      if (numStr === "") return NaN;
+      return parseFloat(numStr);
+    };
+    try { pos = 0; const result = parseExpr(); return isFinite(result) ? result : NaN; }
+    catch { return NaN; }
+  }
+
+  function equationIsValid(r) {
+    const full = buildExpr(r);
+    if (full.includes("?")) return false;
+    const sides = full.split("=");
+    if (sides.length !== 2) return false;
+    const left = evalSide(sides[0]);
+    const right = evalSide(sides[1]);
+    if (isNaN(left) || isNaN(right)) return false;
+    return Math.abs(left - right) < 1e-9;
+  }
+
+  function attemptVerify(r) {
+    if (gameOver || r !== currentRow) return;
+    if (!allFilled(r)) { showToast("Rellena todos los huecos", true); return; }
+    if (!equationIsValid(r)) {
+      showToast("La ecuación no es correcta matemáticamente", true);
+      setRowAnim(prev => { const n = [...prev]; n[r] = "shake invalid-hint"; return n; });
+      setTimeout(() => { setRowAnim(prev => { const n = [...prev]; n[r] = ""; return n; }); }, 800);
+      return;
+    }
+    verifyRow(r);
+  }
+
+  function verifyRow(r) {
+    const userAnswers = values[r].map(v => parseInt(v, 10));
+    const states = new Array(userAnswers.length).fill("wrong");
+    const pool = [...eq.blanks];
+
+    userAnswers.forEach((val, ci) => {
+      if (val === pool[ci]) { states[ci] = "correct"; pool[ci] = null; }
+    });
+    userAnswers.forEach((val, ci) => {
+      if (states[ci] === "correct") return;
+      const idx = pool.indexOf(val);
+      if (idx !== -1) { states[ci] = "close"; pool[idx] = null; }
+    });
+
+    states.forEach((state, ci) => {
+      setTimeout(() => {
+        setFlippingCells(prev => ({ ...prev, [`${r}-${ci}`]: true }));
+        setTimeout(() => {
+          setCellStates(prev => {
+            const next = prev.map(row => [...row]);
+            next[r][ci] = state;
+            return next;
+          });
+        }, 200);
+      }, ci * 130);
+    });
+
+    const didWin = states.every(s => s === "correct");
+    const newAttempts = attempts + 1;
+    setAttempts(newAttempts);
+    saveAttempt(userAnswers, states);
+
+    const delay = eq.blanks.length * 130 + 350;
+    setTimeout(() => {
+      if (didWin || newAttempts >= MAX_ATTEMPTS) {
+        endGame(didWin, newAttempts);
+      } else {
+        setCurrentRow(r + 1);
+        setTimeout(() => inputRefs.current[`${r + 1}-0`]?.focus(), 50);
+      }
+    }, delay);
+  }
+
+  function endGame(didWin, finalAttempts) {
+    gameOverRef.current = true;
+    setGameOver(true);
+    clearInterval(timerRef.current);
+
+    const newStats = loadStats();
+    if (didWin) { newStats.streak++; newStats.solved++; }
+    else { newStats.streak = 0; }
+    newStats.lastDate = todayKey();
+    saveStats(newStats);
+    setStats(newStats);
+
+    const finalSecs = finalSecondsRef.current;
+    const points = didWin ? Math.max(100, 600 - finalAttempts * 80) : 50;
+    setResult({ won: didWin, attempts: finalAttempts, seconds: finalSecs, points });
+
+    setTimeout(() => setShowModal(true), 900);
+
+    if (isLoggedIn()) {
+      saveDailyScore(todayKey(), finalAttempts, points, didWin)
+        .catch(err => console.log("Error guardando daily score:", err));
+    }
+  }
+
+  function handleShare() {
+    const dayAttempts = loadDayAttempts();
+    const squares = dayAttempts.map(a =>
+      a.states.map(s => s === "correct" ? "🟩" : s === "close" ? "🟨" : "🟥").join("")
+    ).join("\n");
+    const didWin = dayAttempts.length > 0 &&
+      dayAttempts[dayAttempts.length - 1].states.every(s => s === "correct");
+    const text =
+      `🧮 Mathle — ${todayKey()}\n` +
+      (didWin ? `✅ ${dayAttempts.length}/${MAX_ATTEMPTS}` : `❌ X/${MAX_ATTEMPTS}`) +
+      `\n\n${squares}\n\nmathle.online`;
+    navigator.clipboard.writeText(text).then(() => showToast("¡Copiado al portapapeles!"));
+  }
+
+  const timerClass = seconds >= 120 ? "danger" : seconds >= 60 ? "warning" : "";
+
+  if (screen === "idle") {
+    return (
+      <div className="daily-idle">
+        <div className="daily-idle-icon">📅</div>
+        <h1 className="daily-idle-title">Modo Diario</h1>
+        <p className="daily-idle-desc">
+          Una ecuación nueva cada día.<br />
+          Tienes 6 intentos para adivinar<br />
+          los valores exactos.
+        </p>
+        <button className="daily-idle-btn" onClick={() => setScreen("game")}>
+          Empezar
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="game-root">
+      <div className={`toast${toast.show ? " show" : ""}${toast.error ? " error" : ""}`}>
+        {toast.msg}
+      </div>
+
+      {showModal && result && (
+        <div className="daily-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="daily-modal" onClick={e => e.stopPropagation()}>
+            <div className="daily-modal-emoji">{result.won ? "✨" : "📐"}</div>
+            <div className={`daily-modal-title ${result.won ? "won" : "lost"}`}>
+              {result.won ? "¡Resuelto!" : "Ecuación perdida"}
+            </div>
+
+            <div className="daily-modal-stats">
+              <div className="daily-modal-stat">
+                <span className="daily-modal-stat-val">{result.attempts}</span>
+                <span className="daily-modal-stat-lbl">intentos</span>
+              </div>
+              <div className="daily-modal-stat-divider" />
+              <div className="daily-modal-stat">
+                <span className="daily-modal-stat-val">{fmtTime(result.seconds)}</span>
+                <span className="daily-modal-stat-lbl">tiempo</span>
+              </div>
+              <div className="daily-modal-stat-divider" />
+              <div className="daily-modal-stat">
+                <span className="daily-modal-stat-val">{result.points}</span>
+                <span className="daily-modal-stat-lbl">puntos</span>
+              </div>
+            </div>
+
+            {!result.won && (
+              <div className="daily-modal-answer">
+                Respuesta: {eq?.blanks.join(", ")}
+              </div>
+            )}
+
+            <div className="daily-modal-actions">
+              <button className="daily-modal-btn-share" onClick={handleShare}>
+                ↗ Compartir resultado
+              </button>
+              {!isLoggedIn() && (
+                <button className="daily-modal-btn-login" onClick={() => router.push("/login")}>
+                  👤 Regístrate para el ranking
+                </button>
+              )}
+              {isLoggedIn() && (
+                <button className="daily-modal-btn-lb" onClick={() => router.push("/leaderboard")}>
+                  🏆 Ver ranking
+                </button>
+              )}
+            </div>
+
+            <button className="daily-modal-close" onClick={() => setShowModal(false)}>✕</button>
+          </div>
+        </div>
+      )}
+
+      <header className="game-header">
+        <div className="title-row">
+          <span className="title-main">Ecuación del día</span>
+        </div>
+        <div className="header-meta">
+          <div className="meta-item">
+            <span className="meta-label">Racha</span>
+            <span className="meta-value">{stats.streak}</span>
+          </div>
+          <div className="meta-item">
+            <span className="meta-label">Tiempo</span>
+            <span className={`timer ${timerClass}`}>{fmtTime(seconds)}</span>
+          </div>
+          <div className="meta-item">
+            <span className="meta-label">Resueltos</span>
+            <span className="meta-value">{stats.solved}</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="divider" />
+
+      {eq && (
+        <div
+          className="eq-template"
+          dangerouslySetInnerHTML={{ __html: superscriptify(eq.eq.replace(/\?/g, "▢")) }}
+        />
+      )}
+      <div className="legend">
+        <div className="legend-item"><div className="legend-dot lg-g" />Correcto</div>
+        <div className="legend-item"><div className="legend-dot lg-y" />Posición errónea</div>
+        <div className="legend-item"><div className="legend-dot lg-r" />Incorrecto</div>
+      </div>
+
+      <div className="grid-wrapper">
+        {Array.from({ length: MAX_ATTEMPTS }, (_, r) => {
+          const isActive = r === currentRow && !gameOver;
+          const isDone = r < currentRow || (gameOver && r <= currentRow);
+          const rowClass = ["grid-row", isActive ? "active" : "", isDone ? "done" : "", rowAnim[r]]
+            .filter(Boolean).join(" ");
+
+          return (
+            <div key={r} className={rowClass}>
+              {parsed.map((token, ti) => {
+                if (token.type === "frag") {
+                  return (
+                    <span key={ti} className="eq-frag"
+                      dangerouslySetInnerHTML={{ __html: superscriptify(token.text) }} />
+                  );
+                }
+                const ci = token.index;
+                const state = cellStates[r]?.[ci] || "";
+                const isFlipping = flippingCells[`${r}-${ci}`];
+                const cellClass = ["cell", state ? `state-${state}` : "", isFlipping ? "flip" : ""]
+                  .filter(Boolean).join(" ");
+
+                return (
+                  <div key={ti} className={cellClass}>
+                    <input
+                      ref={el => { inputRefs.current[`${r}-${ci}`] = el; }}
+                      type="number"
+                      value={values[r]?.[ci] ?? ""}
+                      disabled={r !== currentRow || gameOver}
+                      tabIndex={r === currentRow ? ci + 1 : -1}
+                      onChange={e => handleInput(r, ci, e.target.value)}
+                      onKeyDown={e => handleKeyDown(e, r, ci)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="actions">
+        {!gameOver && (
+          <button className="btn-verify" disabled={!allFilled(currentRow)}
+            onClick={() => attemptVerify(currentRow)}>
+            ✓ Verificar
+          </button>
+        )}
+        {gameOver && (
+          <>
+            <button className="btn-share" onClick={handleShare}>↗ Compartir</button>
+            <button className="btn-share" onClick={() => setShowModal(true)}>📊 Ver resultado</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
