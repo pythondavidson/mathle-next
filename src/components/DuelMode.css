@@ -118,5 +118,29 @@
 
 /* ── Más espacio arriba en modo jugando ──────────────────── */
 .duel-root--playing {
-  padding-top: 250px;
+  padding-top: 160px;
+}
+
+/* ── Popup código copiado ────────────────────────────────── */
+.duel-copiado-popup {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #14532d;
+  border: 1px solid #4ade80;
+  color: #4ade80;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  animation: duel-popup-in .3s cubic-bezier(.34,1.56,.64,1) both;
+  z-index: 999;
+  white-space: nowrap;
+}
+
+@keyframes duel-popup-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }

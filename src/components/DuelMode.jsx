@@ -107,6 +107,7 @@ export default function DuelMode() {
   const [jugadores, setJugadores]     = useState([]);
   const [resultado, setResultado]     = useState(null);
   const [error, setError]             = useState('');
+  const [copiado, setCopiado]         = useState(false);
 
   // countdown
   const [countdown, setCountdown] = useState(COUNTDOWN_TOTAL);
@@ -380,6 +381,7 @@ export default function DuelMode() {
   // ── ESPERANDO ────────────────────────────────────────────
   if (fase === 'esperando') return (
     <div className="timed-root timed-root--idle">
+      {copiado && <div className="duel-copiado-popup">✓ Código copiado</div>}
       <div className="timed-idle">
         <div className="timed-idle-icon">⏳</div>
         <h1 className="timed-idle-title">Esperando rival...</h1>
@@ -387,7 +389,13 @@ export default function DuelMode() {
           <span className="timed-best-label">Código del duelo</span>
           <span className="timed-best-value" style={{ letterSpacing:'0.2em' }}>{codigo}</span>
         </div>
-        <button className="timed-start-btn" onClick={() => navigator.clipboard.writeText(codigo)}>Copiar código</button>
+        <button className="timed-start-btn" onClick={() => {
+          navigator.clipboard.writeText(codigo);
+          setCopiado(true);
+          setTimeout(() => setCopiado(false), 2000);
+        }}>
+          {copiado ? '✓ Código copiado' : 'Copiar código'}
+        </button>
         <div className="timed-idle-hint">El duelo empieza en cuanto tu rival se una</div>
         <button className="timed-go-btn" style={{ border:'1px solid #2a3145', color:'#64748b', marginTop:8 }} onClick={reiniciar}>Cancelar</button>
       </div>
