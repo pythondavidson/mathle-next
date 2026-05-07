@@ -2,7 +2,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { isLoggedIn, getUser } from '../services/api';
+import './TimedMode.css';
 import './DuelMode.css';
+
 
 const API_URL        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const COUNTDOWN_TOTAL = 5;
