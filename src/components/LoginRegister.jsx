@@ -34,7 +34,7 @@ export default function LoginRegister() {
             saveToken(res.data.token);
             saveUser(res.data.user);
             setSuccess(`¡Bienvenido, ${res.data.user.username}!`);
-            setTimeout(() => { router.push("/"); window.location.reload(); }, 1000);
+            setTimeout(() => { window.location.href = "/"; }, 1000);
           }
         })
         .catch(err => {
@@ -66,7 +66,7 @@ export default function LoginRegister() {
       saveToken(res.data.token);
       saveUser(res.data.user);
       setSuccess(`¡Bienvenido, ${res.data.user.username}!`);
-      setTimeout(() => { router.push("/"); window.location.reload(); }, 1000);
+      setTimeout(() => { window.location.href = "/"; }, 1000);
     } catch (err) {
       setError(err.response?.data?.error || "Error al crear la cuenta.");
     } finally {
@@ -101,7 +101,7 @@ export default function LoginRegister() {
       saveToken(res.data.token);
       saveUser(res.data.user);
       setSuccess(isLogin ? `¡Bienvenido, ${res.data.user.username}!` : "¡Cuenta creada con éxito!");
-      setTimeout(() => { router.push("/"); window.location.reload(); }, 1000);
+      setTimeout(() => { window.location.href = "/"; }, 1000);
     } catch (err) {
       setError(err.response?.data?.error || "Error de conexión. Inténtalo de nuevo.");
     } finally {
