@@ -85,6 +85,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7032825555764916"
+        crossorigin="anonymous"></script>
         <link rel="canonical" href="https://mathle.online" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
