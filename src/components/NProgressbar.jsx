@@ -17,3 +17,4 @@ export default function NProgressBar() {
 
   return null;
 }
+//waaaaaaaaa
