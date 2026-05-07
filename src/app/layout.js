@@ -9,7 +9,9 @@ const spaceMono = Space_Mono({
   weight: ['400', '700'],
   subsets: ['latin'],
 });
-
+export const viewport = {
+  themeColor: '#0e1117',
+};
 export const metadata = {
   title: 'Mathle — El juego de matemáticas diario',
   description: 'Mathle es el Wordle de las matemáticas. Adivina los valores que hacen válida la ecuación en 6 intentos. Un puzzle nuevo cada día, modo contrareloj y ranking global. ¡Gratis!',
@@ -86,7 +88,7 @@ export default function RootLayout({ children }) {
     <html lang="es">
       <head>
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7032825555764916"
-         crossorigin="anonymous"></script>
+          crossOrigin="anonymous"></script>
         <link rel="canonical" href="https://mathle.online" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
