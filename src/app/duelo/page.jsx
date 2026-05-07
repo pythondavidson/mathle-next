@@ -1,3 +1,10 @@
-﻿export default function Page() {
-  return <div style={{color:'#64748b',fontFamily:'Space Mono',textAlign:'center',marginTop:'80px',fontSize:'13px',letterSpacing:'2px'}}>⚔️ DUELO — PRÓXIMAMENTE</div>;
+﻿import DuelMode from '../../components/DuelMode';
+
+export const metadata = {
+  title: 'Mathle — Duelo 1vs1',
+  description: 'Reta a un amigo en tiempo real',
+};
+
+export default function Page() {
+  return <DuelMode />;
 }
