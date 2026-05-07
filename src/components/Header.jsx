@@ -12,6 +12,7 @@ export default function Header() {
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
   const [user, setUser] = useState(getUser());
   const userMenuRef = useRef(null);
+  const menuRef = useRef(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -31,6 +32,14 @@ export default function Header() {
   useEffect(() => {
     function handleClick(e) {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -61,7 +70,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="header">
+    <header className="header" ref={menuRef}>
       {/* ── DESKTOP ─────────────────────────────────────── */}
       <div className="header-desktop">
         {/* IZQUIERDA — modos */}
