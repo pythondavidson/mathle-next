@@ -2,6 +2,7 @@ import { Space_Mono } from 'next/font/google';
 import Script from 'next/script';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import NProgressBar from '../components/NProgressBar';
 import './globals.css';
 
 const spaceMono = Space_Mono({
@@ -17,7 +18,6 @@ export const metadata = {
   robots: 'index, follow, max-snippet:-1, max-image-preview:large',
   themeColor: '#0e1117',
   applicationName: 'Mathle',
-  canonical: 'https://mathle.online',
   openGraph: {
     type: 'website',
     siteName: 'Mathle',
@@ -102,6 +102,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={spaceMono.className}>
         <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
+        <NProgressBar />
         <Header />
         {children}
         <Footer />
