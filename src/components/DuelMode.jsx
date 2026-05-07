@@ -5,8 +5,9 @@ import { isLoggedIn, getUser } from '../services/api';
 import './DuelMode.css';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const COUNTDOWN_TOTAL = 5;
 
-// ── BANCO DE ECUACIONES (igual que TimedMode) ──────────────
+// ── BANCO DE ECUACIONES ────────────────────────────────────
 const EQUATIONS = [
   { eq: "? + 7 = 10",             blanks: [3],     difficulty: "fácil" },
   { eq: "2 × ? = 12",             blanks: [6],     difficulty: "fácil" },
@@ -97,12 +98,20 @@ function evalSide(expr) {
   try { pos = 0; const r = parseAddSub(); return isFinite(r) ? r : NaN; } catch { return NaN; }
 }
 
-function checkAnswer(eqStr, values) {
-  let filled = eqStr;
-  let vi = 0;
-  filled = filled.replace(/\?/g, () => values[vi++] ?? '?');
-  if (filled.includes('?')) return false;
-  const sides = filled.split('=');
+function buildExpr(parsed, values) {
+  let blankIdx = 0;
+  let expr = '';
+  for (const token of parsed) {
+    if (token.type === 'frag') { expr += token.text; }
+    else { const v = values[blankIdx]; expr += (v === '' || v === '-') ? '?' : v; blankIdx++; }
+  }
+  return expr;
+}
+
+function equationIsValid(parsed, values) {
+  const full = buildExpr(parsed, values);
+  if (full.includes('?')) return false;
+  const sides = full.split('=');
   if (sides.length !== 2) return false;
   const left = evalSide(sides[0]);
   const right = evalSide(sides[1]);
@@ -110,8 +119,12 @@ function checkAnswer(eqStr, values) {
   return Math.abs(left - right) < 1e-9;
 }
 
-function getRandomEq() {
-  return EQUATIONS[Math.floor(Math.random() * EQUATIONS.length)];
+function getRandomEq(usedSet) {
+  const pool = EQUATIONS.filter((_, i) => !usedSet.has(i));
+  const available = pool.length ? pool : EQUATIONS;
+  const idx = Math.floor(Math.random() * available.length);
+  const globalIdx = EQUATIONS.indexOf(available[idx]);
+  return { eq: available[idx], id: globalIdx };
 }
 
 // ── COMPONENTE ─────────────────────────────────────────────
@@ -122,16 +135,23 @@ export default function DuelMode() {
   const [jugadores, setJugadores] = useState([]);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
-  const [countdown, setCountdown] = useState(5);
+
+  // Countdown
+  const [countdown, setCountdown] = useState(COUNTDOWN_TOTAL);
+
+  // Juego
   const [eq, setEq] = useState(null);
   const [parsed, setParsed] = useState([]);
   const [values, setValues] = useState([]);
   const [shake, setShake] = useState(false);
   const [solved, setSolved] = useState(0);
+  const [usedIds, setUsedIds] = useState(new Set());
 
   const socketRef = useRef(null);
   const inputRefs = useRef({});
   const countdownRef = useRef(null);
+  const solvedRef = useRef(0);
+
   const user = getUser();
   const username = user?.username || 'tú';
 
@@ -141,6 +161,18 @@ export default function DuelMode() {
       clearInterval(countdownRef.current);
     };
   }, []);
+
+  function loadNextEq(currentUsed) {
+    const result = getRandomEq(currentUsed);
+    const newUsed = new Set(currentUsed);
+    newUsed.add(result.id);
+    setUsedIds(newUsed);
+    setEq(result.eq);
+    setParsed(parseEquation(result.eq.eq));
+    setValues(Array(result.eq.blanks.length).fill(''));
+    setTimeout(() => inputRefs.current['0']?.focus(), 60);
+    return newUsed;
+  }
 
   function conectar() {
     if (socketRef.current) return;
@@ -154,14 +186,18 @@ export default function DuelMode() {
 
     socket.on('duelo-iniciado', ({ players }) => {
       setJugadores(players);
-      const randomEq = getRandomEq();
-      setEq(randomEq);
-      setParsed(parseEquation(randomEq.eq));
-      setValues(Array(randomEq.blanks.length).fill(''));
+      solvedRef.current = 0;
       setSolved(0);
+      const newUsed = new Set();
+      const result = getRandomEq(newUsed);
+      newUsed.add(result.id);
+      setUsedIds(newUsed);
+      setEq(result.eq);
+      setParsed(parseEquation(result.eq.eq));
+      setValues(Array(result.eq.blanks.length).fill(''));
       setFase('countdown');
 
-      let c = 5;
+      let c = COUNTDOWN_TOTAL;
       setCountdown(c);
       countdownRef.current = setInterval(() => {
         c--;
@@ -172,11 +208,6 @@ export default function DuelMode() {
           setTimeout(() => inputRefs.current['0']?.focus(), 80);
         }
       }, 1000);
-    });
-
-    socket.on('respuesta-incorrecta', () => {
-      setShake(true);
-      setTimeout(() => setShake(false), 400);
     });
 
     socket.on('duelo-terminado', (data) => {
@@ -203,40 +234,45 @@ export default function DuelMode() {
     socketRef.current.emit('unirse-duelo', { codigo: codigoInput.trim().toUpperCase(), username });
   }
 
-  function enviarRespuesta() {
-    if (!eq || values.some(v => v === '')) return;
+  // ── Input: máx 1 dígito, auto-avance igual que TimedMode ──
+  function handleInput(ci, val) {
+    if (fase !== 'jugando') return;
+    const trimmed = val.length > 1 ? val.slice(-1) : val;
+    if (trimmed !== '' && trimmed !== '-' && !/^-?\d$/.test(trimmed)) return;
+    setValues(prev => { const next = [...prev]; next[ci] = trimmed; return next; });
+    if (trimmed !== '' && trimmed !== '-' && eq && ci < eq.blanks.length - 1) {
+      setTimeout(() => inputRefs.current[`${ci + 1}`]?.focus(), 0);
+    }
+  }
+
+  function handleKeyDown(e, ci) {
+    if (fase !== 'jugando') return;
+    if (e.key === 'Backspace' && values[ci] === '' && ci > 0) {
+      setValues(prev => { const n = [...prev]; n[ci - 1] = ''; return n; });
+      setTimeout(() => inputRefs.current[`${ci - 1}`]?.focus(), 0);
+    }
+    if (e.key === 'Enter') { e.preventDefault(); handleVerify(); }
+    if (e.key === 'Tab')   { e.preventDefault(); handleVerify(); }
+  }
+
+  function handleVerify() {
+    if (fase !== 'jugando') return;
+    if (values.some(v => v === '' || v === '-')) return;
+
     const codigoActivo = codigo || codigoInput.trim().toUpperCase();
 
-    if (checkAnswer(eq.eq, values)) {
+    if (equationIsValid(parsed, values)) {
+      // Enviar al servidor — el servidor decide quién gana
       socketRef.current.emit('respuesta-duelo', { codigo: codigoActivo, respuesta: values });
-      setSolved(s => s + 1);
+      // Incrementar contador local y pasar a la siguiente ecuación
+      const newSolved = solvedRef.current + 1;
+      solvedRef.current = newSolved;
+      setSolved(newSolved);
+      setUsedIds(prev => loadNextEq(prev));
     } else {
+      // Ecuación matemáticamente incorrecta: shake y seguir
       setShake(true);
       setTimeout(() => setShake(false), 400);
-      const next = getRandomEq();
-      setEq(next);
-      setParsed(parseEquation(next.eq));
-      setValues(Array(next.blanks.length).fill(''));
-      setTimeout(() => inputRefs.current['0']?.focus(), 80);
-    }
-  }
-
-  function handleInput(idx, val) {
-    const next = [...values];
-    next[idx] = val;
-    setValues(next);
-  }
-
-  function handleKeyDown(e, idx) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const nextInput = inputRefs.current[`${idx + 1}`];
-      if (nextInput) nextInput.focus();
-      else enviarRespuesta();
-    }
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      enviarRespuesta();
     }
   }
 
@@ -250,11 +286,13 @@ export default function DuelMode() {
     clearInterval(countdownRef.current);
     setFase('lobby'); setCodigo(''); setCodigoInput('');
     setJugadores([]); setResultado(null); setError('');
-    setEq(null); setParsed([]); setValues([]); setSolved(0); setCountdown(5);
+    setEq(null); setParsed([]); setValues([]);
+    setSolved(0); solvedRef.current = 0;
+    setUsedIds(new Set()); setCountdown(COUNTDOWN_TOTAL);
   }
 
   const rival = jugadores.find(j => j !== username) || '???';
-  const codigoActivo = codigo || codigoInput.trim().toUpperCase();
+  const countdownPct = (countdown / COUNTDOWN_TOTAL) * 100;
 
   // ── LOBBY ──────────────────────────────────────────────────
   if (fase === 'lobby') return (
@@ -311,7 +349,22 @@ export default function DuelMode() {
           <span className="duel-vs">VS</span>
           <span className="duel-player duel-player-rival">{rival}</span>
         </div>
-        <div className="duel-countdown-num">{countdown > 0 ? countdown : '¡Ya!'}</div>
+
+        <div className="duel-clock-wrap">
+          <svg className="duel-clock-ring" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="52" className="duel-ring-bg" />
+            <circle
+              cx="60" cy="60" r="52"
+              className="duel-ring-fg"
+              strokeDasharray={`${2 * Math.PI * 52}`}
+              strokeDashoffset={`${2 * Math.PI * 52 * (1 - countdownPct / 100)}`}
+            />
+          </svg>
+          <span className="duel-clock-num">
+            {countdown > 0 ? countdown : '¡Ya!'}
+          </span>
+        </div>
+
         <p className="duel-hint">Prepárate...</p>
       </div>
     </div>
@@ -366,14 +419,14 @@ export default function DuelMode() {
       <div className="duel-actions">
         <button
           className="duel-btn-verify"
-          disabled={values.some(v => v === '')}
-          onClick={enviarRespuesta}
+          disabled={values.some(v => v === '' || v === '-')}
+          onClick={handleVerify}
         >
           ✓ Verificar
         </button>
         <button className="duel-btn-ghost" onClick={rendirse}>Rendirse</button>
       </div>
-      <p className="duel-hint" style={{ marginTop: '0.5rem' }}>Enter o Tab para verificar</p>
+      <p className="duel-hint">Enter o Tab para verificar</p>
     </div>
   );
 
@@ -403,7 +456,9 @@ export default function DuelMode() {
               <p className="duel-resultado-answer">{eq.blanks.join(', ')}</p>
             </div>
           )}
-          <p className="duel-resultado-stats">Ecuaciones correctas: <strong>{solved}</strong></p>
+          <p className="duel-resultado-stats">
+            Ecuaciones correctas: <strong>{solved}</strong>
+          </p>
           <button className="duel-btn-primary" onClick={reiniciar}>Nuevo duelo</button>
         </div>
       </div>
