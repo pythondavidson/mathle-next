@@ -103,3 +103,20 @@
 
 /* ── Anillo countdown: clase safe aplicada directamente ──── */
 .ring-fg.safe { stroke: var(--green, #4ade80); }
+
+/* ── VS top — primera fila en modo jugando ───────────────── */
+.duel-vs-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+  max-width: 520px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* ── Más espacio arriba en modo jugando ──────────────────── */
+.duel-root--playing {
+  padding-top: 160px;
+}

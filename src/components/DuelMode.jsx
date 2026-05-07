@@ -435,13 +435,20 @@ export default function DuelMode() {
 
   // ── JUGANDO ──────────────────────────────────────────────
   if (fase === 'jugando') return (
-    <div className="timed-root">
+    <div className="timed-root duel-root--playing">
       <div className={`timed-toast${toast.show?' show':''}${toast.error?' error':''}`}>{toast.msg}</div>
 
-      {/* Header: username VS username en horizontal, con timer en medio */}
+      {/* VS strip — primera fila */}
+      <div className="duel-vs-top">
+        <span className="duel-vs-name duel-vs-you">{username}</span>
+        <span className="duel-vs-label">VS</span>
+        <span className="duel-vs-name duel-vs-rival">{rival}</span>
+      </div>
+
+      {/* Header: puntos | timer | rival */}
       <div className="timed-header">
         <div className="timed-score-wrap">
-          <span className="timed-score-label">{username}</span>
+          <span className="timed-score-label">Puntos</span>
           <span className="timed-score">{score.toLocaleString()}</span>
         </div>
 
@@ -458,20 +465,10 @@ export default function DuelMode() {
         </div>
 
         <div className="timed-combo-wrap">
-          <span className="timed-combo-label">{rival}</span>
-          <span className="timed-combo">⚔️</span>
-        </div>
-      </div>
-
-      {/* VS strip + combo debajo del header */}
-      <div className="duel-subheader">
-        <div className="duel-vs-strip">
-          <span className="duel-vs-name duel-vs-you">{username}</span>
-          <span className="duel-vs-label">VS</span>
-          <span className="duel-vs-name duel-vs-rival">{rival}</span>
-        </div>
-        <div className="duel-combo-pill">
-          {combo > 1 ? `×${Math.min(combo,5)} combo` : `✓ ${solved} correctas`}
+          <span className="timed-combo-label">Combo</span>
+          <span className={`timed-combo${combo >= 3 ? ' hot' : ''}`}>
+            {combo > 1 ? `×${Math.min(combo,5)}` : '—'}
+          </span>
         </div>
       </div>
 
