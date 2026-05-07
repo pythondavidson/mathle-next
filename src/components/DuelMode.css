@@ -1,9 +1,8 @@
-/* DuelMode.css
-   Usa las clases de TimedMode.css (timed-root, timed-header, timed-clock-wrap, etc.)
-   Solo añade los estilos específicos de duelo que no existen en TimedMode.css
-*/
+/* DuelMode.css — solo estilos específicos del duelo.
+   El resto viene de TimedMode.css (timed-root, timed-header, timed-clock-wrap, ring-bg/fg, etc.)
+   Asegúrate de importar TimedMode.css en el layout o importarlo aquí si es necesario. */
 
-/* ── VS strip ─────────────────────────────────────────────── */
+/* ── VS strip ────────────────────────────────────────────── */
 .duel-vs-strip {
   display: flex;
   align-items: center;
@@ -11,30 +10,14 @@
   justify-content: center;
 }
 
-.duel-vs-strip--compact {
-  flex-direction: column;
-  gap: 2px;
-  min-width: 120px;
-}
-
-.duel-vs-strip--compact .duel-vs-label {
-  font-size: 9px;
-  letter-spacing: 3px;
-}
-
-.duel-vs-strip--compact .duel-vs-name {
-  font-size: 11px;
-  padding: 2px 8px;
-}
-
 .duel-vs-name {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   padding: 4px 12px;
   border-radius: 6px;
   letter-spacing: 0.5px;
   font-family: 'Space Mono', monospace;
-  max-width: 100px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -46,12 +29,32 @@
 .duel-vs-label {
   color: var(--border, #2a3145);
   font-weight: 900;
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 10px;
+  letter-spacing: 3px;
   font-family: 'Space Mono', monospace;
 }
 
-/* ── Input código lobby ───────────────────────────────────── */
+/* ── Subheader (VS + combo bajo el timer) ────────────────── */
+.duel-subheader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: -8px;
+}
+
+.duel-combo-pill {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold, #c9a84c);
+  background: rgba(201,168,76,.08);
+  border: 1px solid rgba(201,168,76,.2);
+  border-radius: 20px;
+  padding: 3px 12px;
+}
+
+/* ── Input código lobby ──────────────────────────────────── */
 .duel-divider {
   font-size: 11px;
   color: var(--muted, #64748b);
@@ -67,6 +70,7 @@
 
 .duel-input {
   flex: 1;
+  min-width: 0;
   padding: 14px 12px;
   background: var(--surface, #161b27);
   border: 2px solid var(--border, #2a3145);
@@ -79,11 +83,10 @@
   font-family: 'Space Mono', monospace;
   outline: none;
   text-transform: uppercase;
-  width: 0; /* flex override */
 }
 .duel-input:focus { border-color: var(--gold, #c9a84c); }
 
-/* ── Error ────────────────────────────────────────────────── */
+/* ── Error ───────────────────────────────────────────────── */
 .duel-error {
   background: #7f1d1d;
   border: 1px solid #f87171;
@@ -97,3 +100,6 @@
   text-align: center;
   box-sizing: border-box;
 }
+
+/* ── Anillo countdown: clase safe aplicada directamente ──── */
+.ring-fg.safe { stroke: var(--green, #4ade80); }
