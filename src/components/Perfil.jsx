@@ -49,7 +49,7 @@ export default function Perfil() {
   if (loading) return <div className="perfil-root"><div className="perfil-loading">Cargando perfil...</div></div>;
   if (error)   return <div className="perfil-root"><div className="perfil-error">{error}</div></div>;
 
-  const { username, email, totalPoints, streakDays, rank, last7 = [] } = profile;
+  const { username, email, totalPoints, streakDays, rank, duelWins = 0, last7 = [] } = profile;
 
   const maxPts = Math.max(...last7.map(d => d.points), 1);
 
@@ -92,7 +92,7 @@ export default function Perfil() {
           <span className="perfil-stat-lbl">Ranking global</span>
         </div>
         <div className="perfil-stat">
-          <span className="perfil-stat-val">—</span>
+          <span className="perfil-stat-val">{duelWins}</span>
           <span className="perfil-stat-lbl">Duelos ganados</span>
         </div>
       </div>

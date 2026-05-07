@@ -204,13 +204,14 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   gap: 5px;
   width: 36px;
   height: 36px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
   border-radius: 8px;
   transition: background .2s;
 }

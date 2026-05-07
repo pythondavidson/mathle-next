@@ -38,7 +38,7 @@ export default function PerfilPublico({ params }) {
   );
   if (error) return <div className="perfil-root"><div className="perfil-error">{error}</div></div>;
 
-  const { totalPoints, streakDays, rank, last7 = [] } = profile;
+  const { totalPoints, streakDays, rank, duelWins = 0, last7 = [] } = profile;
   const displayName = profile.username || username;
   const maxPts = Math.max(...last7.map(d => d.points), 1);
 
@@ -83,7 +83,7 @@ export default function PerfilPublico({ params }) {
           <span className="perfil-stat-lbl">Ranking global</span>
         </div>
         <div className="perfil-stat">
-          <span className="perfil-stat-val">—</span>
+          <span className="perfil-stat-val">{duelWins}</span>
           <span className="perfil-stat-lbl">Duelos ganados</span>
         </div>
       </div>
