@@ -7,7 +7,7 @@ import './DuelMode.css';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const COUNTDOWN_TOTAL = 5;
 
-// ── BANCO DE ECUACIONES ────────────────────────────────────
+// ── BANCO DE ECUACIONES ─────────────────────────────────────
 const EQUATIONS = [
   { eq: "? + 7 = 10",             blanks: [3],     difficulty: "fácil" },
   { eq: "2 × ? = 12",             blanks: [6],     difficulty: "fácil" },
@@ -29,11 +29,9 @@ const EQUATIONS = [
   { eq: "?^2 × 3 − ? = 23",       blanks: [3, 4],  difficulty: "difícil" },
 ];
 
-// ── UTILIDADES ─────────────────────────────────────────────
+// ── UTILIDADES ──────────────────────────────────────────────
 function parseEquation(eqStr) {
-  const tokens = [];
-  let buf = '';
-  let bi = 0;
+  const tokens = []; let buf = ''; let bi = 0;
   for (let i = 0; i < eqStr.length; i++) {
     const ch = eqStr[i];
     if (ch === '?') {
@@ -52,58 +50,38 @@ function superscriptify(text) {
 function evalSide(expr) {
   const s = expr.trim().replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
   let pos = 0;
-  const peek = () => s[pos];
-  const consume = () => s[pos++];
-  const skipSpaces = () => { while (pos < s.length && s[pos] === ' ') pos++; };
-  const parseAddSub = () => {
-    let left = parseMulDiv(); skipSpaces();
-    while (pos < s.length && (peek() === '+' || (peek() === '-' && s[pos - 1] !== '^'))) {
-      const op = consume();
-      left = op === '+' ? left + parseMulDiv() : left - parseMulDiv();
-      skipSpaces();
+  const peek = () => s[pos]; const consume = () => s[pos++];
+  const skip = () => { while (pos < s.length && s[pos] === ' ') pos++; };
+  const addSub = () => {
+    let l = mulDiv(); skip();
+    while (pos < s.length && (peek() === '+' || (peek() === '-' && s[pos-1] !== '^'))) {
+      const op = consume(); l = op === '+' ? l + mulDiv() : l - mulDiv(); skip();
     }
-    return left;
+    return l;
   };
-  const parseMulDiv = () => {
-    let left = parsePow(); skipSpaces();
+  const mulDiv = () => {
+    let l = pw(); skip();
     while (pos < s.length && (peek() === '*' || peek() === '/')) {
-      const op = consume();
-      left = op === '*' ? left * parsePow() : left / parsePow();
-      skipSpaces();
+      const op = consume(); l = op === '*' ? l * pw() : l / pw(); skip();
     }
-    return left;
+    return l;
   };
-  const parsePow = () => {
-    let base = parseUnary(); skipSpaces();
-    if (pos < s.length && peek() === '^') { consume(); base = Math.pow(base, parseUnary()); }
-    return base;
+  const pw = () => { let b = unary(); skip(); if (pos < s.length && peek() === '^') { consume(); b = Math.pow(b, unary()); } return b; };
+  const unary = () => { skip(); if (peek() === '-') { consume(); return -atom(); } if (peek() === '+') { consume(); return atom(); } return atom(); };
+  const atom = () => {
+    skip();
+    if (peek() === '(') { consume(); const v = addSub(); skip(); if (peek() === ')') consume(); return v; }
+    let n = ''; while (pos < s.length && /[\d.]/.test(peek())) n += consume();
+    if (!n) return NaN; return parseFloat(n);
   };
-  const parseUnary = () => {
-    skipSpaces();
-    if (peek() === '-') { consume(); return -parseAtom(); }
-    if (peek() === '+') { consume(); return parseAtom(); }
-    return parseAtom();
-  };
-  const parseAtom = () => {
-    skipSpaces();
-    if (peek() === '(') {
-      consume(); const val = parseAddSub(); skipSpaces();
-      if (peek() === ')') consume(); return val;
-    }
-    let numStr = '';
-    while (pos < s.length && /[\d.]/.test(peek())) numStr += consume();
-    if (numStr === '') return NaN;
-    return parseFloat(numStr);
-  };
-  try { pos = 0; const r = parseAddSub(); return isFinite(r) ? r : NaN; } catch { return NaN; }
+  try { pos = 0; const r = addSub(); return isFinite(r) ? r : NaN; } catch { return NaN; }
 }
 
 function buildExpr(parsed, values) {
-  let blankIdx = 0;
-  let expr = '';
-  for (const token of parsed) {
-    if (token.type === 'frag') { expr += token.text; }
-    else { const v = values[blankIdx]; expr += (v === '' || v === '-') ? '?' : v; blankIdx++; }
+  let bi = 0, expr = '';
+  for (const t of parsed) {
+    if (t.type === 'frag') expr += t.text;
+    else { const v = values[bi]; expr += (v === '' || v === '-') ? '?' : v; bi++; }
   }
   return expr;
 }
@@ -113,65 +91,63 @@ function equationIsValid(parsed, values) {
   if (full.includes('?')) return false;
   const sides = full.split('=');
   if (sides.length !== 2) return false;
-  const left = evalSide(sides[0]);
-  const right = evalSide(sides[1]);
-  if (isNaN(left) || isNaN(right)) return false;
-  return Math.abs(left - right) < 1e-9;
+  const l = evalSide(sides[0]), r = evalSide(sides[1]);
+  if (isNaN(l) || isNaN(r)) return false;
+  return Math.abs(l - r) < 1e-9;
 }
 
 function getRandomEq(usedSet) {
   const pool = EQUATIONS.filter((_, i) => !usedSet.has(i));
-  const available = pool.length ? pool : EQUATIONS;
-  const idx = Math.floor(Math.random() * available.length);
-  const globalIdx = EQUATIONS.indexOf(available[idx]);
-  return { eq: available[idx], id: globalIdx };
+  const src = pool.length ? pool : EQUATIONS;
+  const pick = src[Math.floor(Math.random() * src.length)];
+  return { eq: pick, id: EQUATIONS.indexOf(pick) };
 }
 
-// ── COMPONENTE ─────────────────────────────────────────────
+// ── COMPONENTE ──────────────────────────────────────────────
 export default function DuelMode() {
-  const [fase, setFase] = useState('lobby');
-  const [codigo, setCodigo] = useState('');
+  const [fase, setFase]           = useState('lobby');
+  const [codigo, setCodigo]       = useState('');
   const [codigoInput, setCodigoInput] = useState('');
   const [jugadores, setJugadores] = useState([]);
   const [resultado, setResultado] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError]         = useState('');
 
-  // Countdown
+  // countdown: cuenta de COUNTDOWN_TOTAL+1 a 0 para que el anillo llegue a vacío
   const [countdown, setCountdown] = useState(COUNTDOWN_TOTAL);
 
-  // Juego
-  const [eq, setEq] = useState(null);
+  // juego
+  const [eq, setEq]         = useState(null);
   const [parsed, setParsed] = useState([]);
   const [values, setValues] = useState([]);
-  const [shake, setShake] = useState(false);
-  const [solved, setSolved] = useState(0);
+  const [rowAnim, setRowAnim] = useState('');
+  const [solved, setSolved]   = useState(0);
+  const [skipped, setSkipped] = useState(0);
   const [usedIds, setUsedIds] = useState(new Set());
 
-  const socketRef = useRef(null);
-  const inputRefs = useRef({});
-  const countdownRef = useRef(null);
-  const solvedRef = useRef(0);
+  const socketRef      = useRef(null);
+  const inputRefs      = useRef({});
+  const countdownRef   = useRef(null);
+  const solvedRef      = useRef(0);
+  const usedIdsRef     = useRef(new Set());
 
   const user = getUser();
   const username = user?.username || 'tú';
 
-  useEffect(() => {
-    return () => {
-      if (socketRef.current) socketRef.current.disconnect();
-      clearInterval(countdownRef.current);
-    };
+  useEffect(() => () => {
+    socketRef.current?.disconnect();
+    clearInterval(countdownRef.current);
   }, []);
 
   function loadNextEq(currentUsed) {
     const result = getRandomEq(currentUsed);
     const newUsed = new Set(currentUsed);
     newUsed.add(result.id);
+    usedIdsRef.current = newUsed;
     setUsedIds(newUsed);
     setEq(result.eq);
     setParsed(parseEquation(result.eq.eq));
     setValues(Array(result.eq.blanks.length).fill(''));
     setTimeout(() => inputRefs.current['0']?.focus(), 60);
-    return newUsed;
   }
 
   function conectar() {
@@ -179,33 +155,37 @@ export default function DuelMode() {
     const socket = io(API_URL, { transports: ['websocket'] });
     socketRef.current = socket;
 
-    socket.on('duelo-creado', ({ codigo }) => {
-      setCodigo(codigo);
-      setFase('esperando');
-    });
+    socket.on('duelo-creado', ({ codigo }) => { setCodigo(codigo); setFase('esperando'); });
 
     socket.on('duelo-iniciado', ({ players }) => {
       setJugadores(players);
-      solvedRef.current = 0;
-      setSolved(0);
-      const newUsed = new Set();
-      const result = getRandomEq(newUsed);
-      newUsed.add(result.id);
+      solvedRef.current = 0; setSolved(0);
+      setSkipped(0);
+      const fresh = new Set();
+      usedIdsRef.current = fresh;
+      const result = getRandomEq(fresh);
+      const newUsed = new Set([result.id]);
+      usedIdsRef.current = newUsed;
       setUsedIds(newUsed);
       setEq(result.eq);
       setParsed(parseEquation(result.eq.eq));
       setValues(Array(result.eq.blanks.length).fill(''));
-      setFase('countdown');
 
+      // Arrancar countdown desde COUNTDOWN_TOTAL+1 y bajar hasta 0
+      // El anillo empieza lleno (c=COUNTDOWN_TOTAL) y termina vacío (c=0)
       let c = COUNTDOWN_TOTAL;
       setCountdown(c);
+      setFase('countdown');
+
       countdownRef.current = setInterval(() => {
         c--;
         setCountdown(c);
         if (c <= 0) {
           clearInterval(countdownRef.current);
-          setFase('jugando');
-          setTimeout(() => inputRefs.current['0']?.focus(), 80);
+          setTimeout(() => {
+            setFase('jugando');
+            setTimeout(() => inputRefs.current['0']?.focus(), 80);
+          }, 900); // pequeño delay para que se vea el anillo vacío y el "¡Ya!"
         }
       }, 1000);
     });
@@ -216,25 +196,20 @@ export default function DuelMode() {
       setFase('resultado');
     });
 
-    socket.on('error-duelo', ({ mensaje }) => {
-      setError(mensaje);
-    });
+    socket.on('error-duelo', ({ mensaje }) => setError(mensaje));
   }
 
   function crearDuelo() {
     if (!isLoggedIn()) { setError('Debes iniciar sesión para jugar duelos'); return; }
-    conectar();
-    socketRef.current.emit('crear-duelo', { username });
+    conectar(); socketRef.current.emit('crear-duelo', { username });
   }
 
   function unirseADuelo() {
     if (!isLoggedIn()) { setError('Debes iniciar sesión para jugar duelos'); return; }
     if (!codigoInput.trim()) { setError('Introduce el código del duelo'); return; }
-    conectar();
-    socketRef.current.emit('unirse-duelo', { codigo: codigoInput.trim().toUpperCase(), username });
+    conectar(); socketRef.current.emit('unirse-duelo', { codigo: codigoInput.trim().toUpperCase(), username });
   }
 
-  // ── Input: máx 1 dígito, auto-avance igual que TimedMode ──
   function handleInput(ci, val) {
     if (fase !== 'jugando') return;
     const trimmed = val.length > 1 ? val.slice(-1) : val;
@@ -258,22 +233,23 @@ export default function DuelMode() {
   function handleVerify() {
     if (fase !== 'jugando') return;
     if (values.some(v => v === '' || v === '-')) return;
-
     const codigoActivo = codigo || codigoInput.trim().toUpperCase();
-
     if (equationIsValid(parsed, values)) {
-      // Enviar al servidor — el servidor decide quién gana
       socketRef.current.emit('respuesta-duelo', { codigo: codigoActivo, respuesta: values });
-      // Incrementar contador local y pasar a la siguiente ecuación
       const newSolved = solvedRef.current + 1;
       solvedRef.current = newSolved;
       setSolved(newSolved);
-      setUsedIds(prev => loadNextEq(prev));
+      loadNextEq(usedIdsRef.current);
     } else {
-      // Ecuación matemáticamente incorrecta: shake y seguir
-      setShake(true);
-      setTimeout(() => setShake(false), 400);
+      setRowAnim('shake');
+      setTimeout(() => setRowAnim(''), 450);
     }
+  }
+
+  function handleSkip() {
+    if (fase !== 'jugando') return;
+    setSkipped(s => s + 1);
+    loadNextEq(usedIdsRef.current);
   }
 
   function rendirse() {
@@ -282,27 +258,34 @@ export default function DuelMode() {
   }
 
   function reiniciar() {
-    if (socketRef.current) { socketRef.current.disconnect(); socketRef.current = null; }
+    socketRef.current?.disconnect(); socketRef.current = null;
     clearInterval(countdownRef.current);
     setFase('lobby'); setCodigo(''); setCodigoInput('');
     setJugadores([]); setResultado(null); setError('');
     setEq(null); setParsed([]); setValues([]);
     setSolved(0); solvedRef.current = 0;
-    setUsedIds(new Set()); setCountdown(COUNTDOWN_TOTAL);
+    setSkipped(0); setUsedIds(new Set()); usedIdsRef.current = new Set();
+    setCountdown(COUNTDOWN_TOTAL);
   }
 
   const rival = jugadores.find(j => j !== username) || '???';
-  const countdownPct = (countdown / COUNTDOWN_TOTAL) * 100;
+  // Anillo: lleno cuando countdown=COUNTDOWN_TOTAL, vacío cuando countdown=0
+  const circumference = 2 * Math.PI * 28;
+  const countdownPct  = countdown / COUNTDOWN_TOTAL; // 1→0
+  const dashOffset    = circumference * (1 - countdownPct);
 
-  // ── LOBBY ──────────────────────────────────────────────────
+  // ── LOBBY ────────────────────────────────────────────────
   if (fase === 'lobby') return (
-    <div className="duel-root duel-root--centered">
-      <div className="duel-card">
-        <div className="duel-icon">⚔️</div>
-        <h1 className="duel-title">Duelos</h1>
-        <p className="duel-subtitle">Reta a un amigo en tiempo real</p>
+    <div className="timed-root timed-root--idle">
+      <div className="timed-idle">
+        <div className="timed-idle-icon">⚔️</div>
+        <h1 className="timed-idle-title">Modo Duelo</h1>
+        <p className="timed-idle-desc">
+          Reta a un amigo en tiempo real.<br />
+          El primero en verificar la ecuación <strong>gana</strong>.
+        </p>
         {error && <div className="duel-error">{error}</div>}
-        <button className="duel-btn-primary" onClick={crearDuelo}>+ Crear duelo</button>
+        <button className="timed-start-btn" onClick={crearDuelo}>+ Crear duelo</button>
         <div className="duel-divider">o</div>
         <div className="duel-join-row">
           <input
@@ -313,95 +296,117 @@ export default function DuelMode() {
             onKeyDown={e => e.key === 'Enter' && unirseADuelo()}
             maxLength={5}
           />
-          <button className="duel-btn-secondary" onClick={unirseADuelo}>Unirse</button>
+          <button className="timed-start-btn" style={{ width: 'auto', padding: '14px 24px' }} onClick={unirseADuelo}>Unirse</button>
         </div>
-        <div className="duel-info">
-          <p>📋 Crea un duelo y comparte el código con tu rival.</p>
-          <p>⚡ El primero en verificar la ecuación correcta gana.</p>
-        </div>
+        <div className="timed-idle-hint">El primero en acertar la ecuación gana la ronda</div>
       </div>
     </div>
   );
 
-  // ── ESPERANDO ──────────────────────────────────────────────
+  // ── ESPERANDO ────────────────────────────────────────────
   if (fase === 'esperando') return (
-    <div className="duel-root duel-root--centered">
-      <div className="duel-card">
-        <div className="duel-icon">⏳</div>
-        <h1 className="duel-title">Esperando rival...</h1>
-        <p className="duel-subtitle">Comparte este código</p>
-        <div className="duel-codigo-display">
-          <span className="duel-codigo-text">{codigo}</span>
-          <button className="duel-btn-copy" onClick={() => navigator.clipboard.writeText(codigo)}>Copiar</button>
+    <div className="timed-root timed-root--idle">
+      <div className="timed-idle">
+        <div className="timed-idle-icon">⏳</div>
+        <h1 className="timed-idle-title">Esperando rival...</h1>
+        <div className="timed-best-wrap">
+          <span className="timed-best-label">Código del duelo</span>
+          <span className="timed-best-value" style={{ letterSpacing: '0.2em' }}>{codigo}</span>
         </div>
-        <p className="duel-hint">El duelo empieza en cuanto tu rival se una.</p>
-        <button className="duel-btn-ghost" onClick={reiniciar}>Cancelar</button>
+        <button
+          className="timed-start-btn"
+          onClick={() => navigator.clipboard.writeText(codigo)}
+        >
+          Copiar código
+        </button>
+        <p className="timed-idle-hint">El duelo empieza en cuanto tu rival se una</p>
+        <button className="timed-go-btn" style={{ border: '1px solid #2a3145', color: '#64748b' }} onClick={reiniciar}>Cancelar</button>
       </div>
     </div>
   );
 
-  // ── COUNTDOWN ──────────────────────────────────────────────
+  // ── COUNTDOWN ────────────────────────────────────────────
   if (fase === 'countdown') return (
-    <div className="duel-root duel-root--centered">
-      <div className="duel-card">
-        <div className="duel-vs-row">
-          <span className="duel-player duel-player-you">{username}</span>
-          <span className="duel-vs">VS</span>
-          <span className="duel-player duel-player-rival">{rival}</span>
+    <div className="timed-root timed-root--idle">
+      <div className="timed-idle">
+        <div className="duel-vs-strip">
+          <span className="duel-vs-name duel-vs-you">{username}</span>
+          <span className="duel-vs-label">VS</span>
+          <span className="duel-vs-name duel-vs-rival">{rival}</span>
         </div>
 
-        <div className="duel-clock-wrap">
-          <svg className="duel-clock-ring" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="60" cy="60" r="52" className="duel-ring-bg" />
+        {/* Mismo anillo que TimedMode pero más grande */}
+        <div className="timed-clock-wrap" style={{ width: 120, height: 120 }}>
+          <svg className="timed-clock-ring" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="28" className="ring-bg" />
             <circle
-              cx="60" cy="60" r="52"
-              className="duel-ring-fg"
-              strokeDasharray={`${2 * Math.PI * 52}`}
-              strokeDashoffset={`${2 * Math.PI * 52 * (1 - countdownPct / 100)}`}
+              cx="32" cy="32" r="28"
+              className="ring-fg"
+              strokeDasharray={circumference}
+              strokeDashoffset={dashOffset}
             />
           </svg>
-          <span className="duel-clock-num">
+          <span className="timed-clock-num" style={{ fontSize: 36 }}>
             {countdown > 0 ? countdown : '¡Ya!'}
           </span>
         </div>
 
-        <p className="duel-hint">Prepárate...</p>
+        <p className="timed-idle-hint">Prepárate...</p>
       </div>
     </div>
   );
 
-  // ── JUGANDO ────────────────────────────────────────────────
+  // ── JUGANDO ──────────────────────────────────────────────
   if (fase === 'jugando') return (
-    <div className="duel-root">
-      <div className="duel-vs-row">
-        <span className="duel-player duel-player-you">{username}</span>
-        <span className="duel-vs">VS</span>
-        <span className="duel-player duel-player-rival">{rival}</span>
+    <div className="timed-root">
+      {/* Header igual que TimedMode pero con VS en vez de puntos/combo */}
+      <div className="timed-header">
+        <div className="timed-score-wrap">
+          <span className="timed-score-label">Correctas</span>
+          <span className="timed-score">{solved}</span>
+        </div>
+
+        <div className="duel-vs-strip duel-vs-strip--compact">
+          <span className="duel-vs-name duel-vs-you">{username}</span>
+          <span className="duel-vs-label">VS</span>
+          <span className="duel-vs-name duel-vs-rival">{rival}</span>
+        </div>
+
+        <div className="timed-combo-wrap">
+          <span className="timed-combo-label">Saltadas</span>
+          <span className="timed-combo">{skipped > 0 ? skipped : '—'}</span>
+        </div>
       </div>
 
-      <div className="duel-solved-row">
-        <span className="duel-solved-badge">✓ {solved} correctas</span>
-        <span className="duel-diff-badge">{eq?.difficulty}</span>
+      {/* Barra decorativa vacía (sin timer) */}
+      <div className="timed-bar-wrap">
+        <div className="timed-bar-fill safe" style={{ width: '100%' }} />
+      </div>
+
+      <div className="timed-diff-row">
+        <div className="timed-diff-badge">{eq?.difficulty}</div>
       </div>
 
       {eq && (
         <div
-          className="duel-eq-template"
+          className="timed-eq-template"
           dangerouslySetInnerHTML={{ __html: superscriptify(eq.eq.replace(/\?/g, '▢')) }}
         />
       )}
 
-      <div className={`duel-row${shake ? ' duel-shake' : ''}`}>
+      <div className="timed-float-zone" />
+
+      <div className={`timed-row ${rowAnim}`}>
         {parsed.map((token, ti) => {
           if (token.type === 'frag') {
             return (
-              <span key={ti} className="duel-frag"
+              <span key={ti} className="timed-frag"
                 dangerouslySetInnerHTML={{ __html: superscriptify(token.text) }} />
             );
           }
           const ci = token.index;
           return (
-            <div key={ti} className="duel-cell">
+            <div key={ti} className="timed-cell">
               <input
                 ref={el => { inputRefs.current[`${ci}`] = el; }}
                 type="number"
@@ -416,50 +421,74 @@ export default function DuelMode() {
         })}
       </div>
 
-      <div className="duel-actions">
+      {/* Botones: Verificar + Saltar en la misma fila, Rendirse debajo */}
+      <div className="timed-actions">
         <button
-          className="duel-btn-verify"
+          className="timed-btn-verify"
           disabled={values.some(v => v === '' || v === '-')}
           onClick={handleVerify}
         >
           ✓ Verificar
         </button>
-        <button className="duel-btn-ghost" onClick={rendirse}>Rendirse</button>
+        <button className="timed-btn-skip" onClick={handleSkip}>
+          → Saltar
+        </button>
       </div>
-      <p className="duel-hint">Enter o Tab para verificar</p>
+
+      <div className="timed-actions" style={{ marginTop: 0 }}>
+        <button
+          className="timed-btn-skip"
+          style={{ flex: 1, color: 'var(--red)', borderColor: 'var(--red)' }}
+          onClick={rendirse}
+        >
+          ⚑ Rendirse
+        </button>
+      </div>
+
+      <div className="timed-footer-stats">
+        <span>✓ {solved} correctas</span>
+        <span>↷ {skipped} saltadas</span>
+      </div>
     </div>
   );
 
-  // ── RESULTADO ──────────────────────────────────────────────
+  // ── RESULTADO ────────────────────────────────────────────
   if (fase === 'resultado') {
     const gane = resultado?.ganador === username;
     return (
-      <div className="duel-root duel-root--centered">
-        <div className="duel-card">
-          <div className={`duel-resultado ${gane ? 'duel-win' : 'duel-lose'}`}>
-            <span className="duel-resultado-emoji">{gane ? '🏆' : '💀'}</span>
-            <h2 className="duel-resultado-titulo">{gane ? '¡Victoria!' : 'Derrota'}</h2>
-            <p className="duel-resultado-sub">
+      <div className="timed-root timed-root--idle">
+        <div className="timed-gameover">
+          <div className="timed-go-bg" />
+          <div className="timed-go-content">
+            <div className="timed-go-label" style={{ color: gane ? 'var(--green)' : 'var(--red)' }}>
+              {gane ? '¡ V I C T O R I A !' : 'D E R R O T A'}
+            </div>
+            <div className="timed-go-score" style={{ fontSize: 72 }}>
+              {gane ? '🏆' : '💀'}
+            </div>
+            <div className="timed-go-pts-label">
               {resultado?.desconectado
                 ? `${resultado.perdedor} se desconectó`
                 : resultado?.rendido
                 ? `${resultado.perdedor} se rindió`
                 : `${resultado.ganador} resolvió primero`}
-            </p>
-          </div>
-          {eq && (
-            <div className="duel-resultado-problem">
-              <p className="duel-resultado-label">Última ecuación</p>
-              <p className="duel-resultado-ecuacion"
-                dangerouslySetInnerHTML={{ __html: superscriptify(eq.eq) }} />
-              <p className="duel-resultado-label">Respuesta correcta</p>
-              <p className="duel-resultado-answer">{eq.blanks.join(', ')}</p>
             </div>
-          )}
-          <p className="duel-resultado-stats">
-            Ecuaciones correctas: <strong>{solved}</strong>
-          </p>
-          <button className="duel-btn-primary" onClick={reiniciar}>Nuevo duelo</button>
+
+            <div className="timed-go-stats">
+              <div className="timed-go-stat">
+                <span className="timed-go-stat-val">{solved}</span>
+                <span className="timed-go-stat-lbl">correctas</span>
+              </div>
+              <div className="timed-go-stat">
+                <span className="timed-go-stat-val">{skipped}</span>
+                <span className="timed-go-stat-lbl">saltadas</span>
+              </div>
+            </div>
+
+            <div className="timed-go-actions">
+              <button className="timed-go-btn primary" onClick={reiniciar}>↻ Nuevo duelo</button>
+            </div>
+          </div>
         </div>
       </div>
     );
