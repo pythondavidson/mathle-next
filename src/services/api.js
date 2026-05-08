@@ -34,15 +34,36 @@ export const deleteAccount = () =>
 export const saveDailyScore = (date, attempts, points, won) =>
   api.post('/api/daily/score', { date, attempts, points, won });
 
-export const getDailyLeaderboard = (filter = 'hoy') =>
-  api.get(`/api/daily/leaderboard?filter=${filter}`);
-
 // ── TIMED ──────────────────────────────────────────────────────────
 export const saveTimedScore = (points) =>
   api.post('/api/timed/score', { points });
 
-export const getTimedLeaderboard = () =>
-  api.get('/api/timed/leaderboard');
+// ── LEADERBOARD UNIFICADO ──────────────────────────────────────────
+// modo: 'diario' | 'contrarreloj' | 'ambos'
+// filter: 'hoy' | 'semana' | 'alltime'
+export const getDailyLeaderboard = (filter = 'hoy', modo = 'ambos') => {
+  if (modo === 'diario')       return api.get(`/api/daily/leaderboard?filter=${filter}`);
+  if (modo === 'contrarreloj') return api.get(`/api/timed/leaderboard?filter=${filter}`);
+  // 'ambos' — llama a los dos y los fusiona en el cliente
+  return Promise.all([
+    api.get(`/api/daily/leaderboard?filter=${filter}`),
+    api.get(`/api/timed/leaderboard?filter=${filter}`),
+  ]).then(([daily, timed]) => {
+    // Fusionar por username, sumando puntos
+    const map = {};
+    for (const row of [...daily.data, ...timed.data]) {
+      if (!map[row.username]) map[row.username] = { username: row.username, pts: 0, racha: row.racha };
+      map[row.username].pts += row.pts;
+      map[row.username].racha = Math.max(map[row.username].racha, row.racha);
+    }
+    const merged = Object.values(map).sort((a, b) => b.pts - a.pts).slice(0, 10);
+    // Devolver en el mismo formato que axios para que Leaderboard.jsx no cambie
+    return { data: merged };
+  });
+};
+
+export const getTimedLeaderboard = (filter = 'alltime') =>
+  api.get(`/api/timed/leaderboard?filter=${filter}`);
 
 // ── HELPERS ────────────────────────────────────────────────────────
 export const saveToken   = (token) => localStorage.setItem('mathle_token', token);
@@ -66,7 +87,7 @@ export const logout     = () => {
 };
 export const googleComplete = (credential, username) =>
   api.post('/api/auth/google/complete', { credential, username });
-// api google login ----------------------------
 export const googleAuth = (credential) =>
   api.post('/api/auth/google', { credential });
+
 export default api;
