@@ -36,8 +36,7 @@
 }
 
 /* ── FILTROS ───────────────────────────────────────────── */
-/* Ambos grupos de filtros comparten el mismo ancho y contenedor */
-.lb-mode-filters,
+/* Filtro de tiempo — pill con fondo */
 .lb-filters {
   display: flex;
   gap: 6px;
@@ -48,13 +47,21 @@
   width: 100%;
   max-width: 340px;
   box-sizing: border-box;
+  margin-bottom: 24px;
 }
 
-.lb-mode-filters { margin-bottom: 10px; }
-.lb-filters      { margin-bottom: 24px; }
+/* Filtro de modo — mismo ancho, sin fondo */
+.lb-mode-filters {
+  display: flex;
+  gap: 6px;
+  padding: 4px 0;
+  width: 100%;
+  max-width: 340px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
 
-/* Botones de modo — mismo estilo pill que los de tiempo */
-.lb-mode-btn,
+/* Botones de tiempo — estilo pill relleno */
 .lb-filter-btn {
   font-family: 'Space Mono', monospace;
   font-size: 10px;
@@ -70,16 +77,34 @@
   flex: 1;
   text-align: center;
 }
-.lb-mode-btn:hover,
 .lb-filter-btn:hover { color: #e2e8f0; }
-
 .lb-filter-btn.active { background: #c9a84c; color: #0e1117; font-weight: 700; }
 
-/* Modo activo: acento dorado en borde (diferencia visual sutil del secundario) */
+/* Botones de modo — estilo outline con borde dorado al activarse */
+.lb-mode-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 0;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all .2s;
+  flex: 1;
+  text-align: center;
+}
+.lb-mode-btn:hover {
+  color: #e2e8f0;
+  border-color: #3a4155;
+}
 .lb-mode-btn.active {
-  background: #c9a84c;
-  color: #0e1117;
+  border-color: #c9a84c;
+  color: #c9a84c;
   font-weight: 700;
+  background: transparent;
 }
 
 /* ── TABLA ─────────────────────────────────────────────── */
