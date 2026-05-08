@@ -630,32 +630,3 @@
   .timed-cell input { font-size: 17px; }
   .timed-go-score { font-size: 52px; }
 }
-
-/* ── MOBILE KEYBOARD FIX ───────────────────────────────── */
-@media (max-width: 600px) {
-  .timed-header {
-    position: fixed;
-    top: 56px;
-    left: 0;
-    right: 0;
-    max-width: 100%;
-    background: var(--bg);
-    z-index: 100;
-    padding: 10px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .timed-bar-wrap {
-    position: fixed;
-    top: 148px;
-    left: 0;
-    right: 0;
-    max-width: 100%;
-    margin: 0;
-    z-index: 100;
-  }
-
-  .timed-root {
-    padding-top: 175px;
-  }
-}
