@@ -482,6 +482,7 @@ export default function DailyGame() {
         <div className="legend-item"><div className="legend-dot lg-r" />Incorrecto</div>
       </div>
 
+      <div className="game-body">
       <div className="grid-wrapper">
         {Array.from({ length: MAX_ATTEMPTS }, (_, r) => {
           const isActive = r === currentRow && !gameOver;
@@ -543,6 +544,7 @@ export default function DailyGame() {
             <button className="btn-share" onClick={() => setShowModal(true)}>📊 Ver resultado</button>
           </>
         )}
+      </div>
       </div>
 
       {isMobile && (

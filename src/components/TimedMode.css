@@ -527,14 +527,14 @@
 /* ── FRAG & CELL ───────────────────────────────────────── */
 .timed-frag {
   font-family: 'STIX Two Text', serif;
-  font-size: 20px;
+  font-size: 28px;          /* ← era 20px */
   color: var(--muted);
-  padding: 0 5px;
+  padding: 0 6px;
   white-space: pre;
   user-select: none;
   line-height: var(--cell);
 }
-.timed-frag sup { font-size: 13px; vertical-align: super; line-height: 0; }
+.timed-frag sup { font-size: 17px; vertical-align: super; line-height: 0; }
 
 .timed-cell {
   width: var(--cell);
@@ -630,4 +630,14 @@
   .timed-frag { font-size: 13px; }
   .timed-cell input { font-size: 17px; }
   .timed-go-score { font-size: 52px; }
+}
+
+/* Responsive — mantener proporción */
+@media (max-width: 600px) {
+  .timed-frag { font-size: 22px; padding: 0 4px; }
+  .timed-frag sup { font-size: 14px; }
+}
+@media (max-width: 380px) {
+  .timed-frag { font-size: 18px; padding: 0 3px; }
+  .timed-frag sup { font-size: 12px; }
 }

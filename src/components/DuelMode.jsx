@@ -499,12 +499,6 @@ export default function DuelMode() {
         {eq?.difficulty === 'difícil' && <div className="timed-bonus-tag">⚡ +{BONUS_TIME}s</div>}
       </div>
 
-      {eq && (
-        <div className="timed-eq-template"
-          dangerouslySetInnerHTML={{ __html: superscriptify(eq.eq.replace(/\?/g,'▢')) }}
-        />
-      )}
-
       <div className="timed-float-zone">
         {lastPoints && (
           <div className="timed-float-pts" key={lastPoints.key}>
