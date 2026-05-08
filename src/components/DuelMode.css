@@ -152,18 +152,22 @@
 @keyframes combo-bump  { 0% { transform: scale(1.45); } 100% { transform: scale(1); } }
 @keyframes combo-glow  { 0%,100% { text-shadow: 0 0 8px rgba(248,113,113,.4); } 50% { text-shadow: 0 0 22px rgba(248,113,113,.9); } }
 
+/* ── Lobby: contenido anclado arriba ─────────────────────── */
+/* Solo la primera pantalla (lobby) arranca desde arriba.
+   El resto de pantallas idle (esperando, countdown...) 
+   conservan el centrado vertical de .timed-idle. */
+.duel-lobby .timed-idle {
+  justify-content: flex-start;
+}
+
 /* ── MÓVIL ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* position:fixed ancla el lobby al viewport, pero entonces
-     el timed-idle se centra incluyendo los 56px del header.
-     Con padding-top: 56px en el contenedor, el área disponible
-     para centrar empieza justo debajo del header — igual que
-     las demás pantallas idle. */
+  /* Fijado al viewport: el teclado nativo no desplaza la página */
   .duel-lobby {
     position: fixed;
     inset: 0;
     overflow-y: auto;
-    padding-top: 56px;
+    padding-top: 56px; /* altura del header móvil */
   }
 
   /* Padding jugando reducido en móvil */
