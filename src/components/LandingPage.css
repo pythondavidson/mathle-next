@@ -48,13 +48,23 @@ html, body {
   margin: 0;
 }
 
-/* ── GRID — 2x2 en desktop, 1 columna en móvil ─────────── */
+/* ── GRID — 2x2 + fila completa en desktop, 1 columna en móvil ── */
 .landing-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   width: 100%;
   max-width: 360px;
+}
+
+/* Última tarjeta (Cómo jugar) ocupa toda la fila */
+.landing-card:last-child {
+  grid-column: 1 / -1;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
 }
 
 /* ── TARJETA ───────────────────────────────────────────── */
@@ -236,6 +246,14 @@ html, body {
   .landing-grid {
     grid-template-columns: 1fr;
     max-width: 300px;
+  }
+
+  /* En móvil la última tarjeta vuelve al comportamiento normal */
+  .landing-card:last-child {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding-top: 18px;
+    padding-bottom: 18px;
   }
 
   .landing-card {
