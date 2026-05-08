@@ -123,7 +123,11 @@ export default function TimedMode() {
       setParsed(parseEquation(result.eq.eq));
       setValues(Array(result.eq.blanks.length).fill(''));
     }
-    setTimeout(() => inputRefs.current['0']?.focus(), 80);
+    setTimeout(() => {
+      focusedCellRef.current = 0;
+      inputRefs.current['0']?.focus();
+      if (isMobile) setKbOpen(true);
+    }, 80);
   }
 
   function startGame() {
@@ -145,6 +149,7 @@ export default function TimedMode() {
     setRootFlash('');
     setIsNewBest(false);
     setPhase('playing');
+    if (isMobile) setTimeout(() => setKbOpen(true), 50);
   }
 
   useEffect(() => {
@@ -160,6 +165,7 @@ export default function TimedMode() {
 
   useEffect(() => {
     if (phase === 'gameover') {
+      setKbOpen(false);
       const finalScore = scoreRef.current;
       saveBestScore(finalScore);
       const best = loadBestScore();

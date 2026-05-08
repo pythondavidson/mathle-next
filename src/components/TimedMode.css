@@ -641,3 +641,21 @@
   .timed-frag { font-size: 18px; padding: 0 3px; }
   .timed-frag sup { font-size: 12px; }
 }
+
+
+/* ── ESPACIADO UNIFORME diff-row / ecuación / botones ──── */
+/* Reduce el margen superior del badge de dificultad        */
+.timed-diff-row {
+  margin: 8px 0 6px;   /* era 18px arriba */
+}
+ 
+/* Reduce la zona flotante de puntos para que no separe tanto */
+.timed-float-zone {
+  height: 24px;        /* era 36px */
+}
+ 
+/* Iguala la distancia entre ecuación+huecos y botones */
+.timed-actions {
+  margin-top: 14px;    /* era 20px */
+}
+ 
