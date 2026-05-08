@@ -130,8 +130,7 @@ export default function ComoJugar() {
       <section className="cj-scoring">
         <h2 className="cj-section-title">Sistema de puntuación</h2>
         <p className="cj-scoring-note">
-          Aplica al Contrareloj y al Duelo. La puntuación final es:
-          <strong> (puntos base + tiempo restante × 2) × multiplicador de combo</strong>
+          Aplica al Contrareloj y al Duelo. 
         </p>
         <div className="cj-scoring-grid">
           {SCORING.map(s => (
