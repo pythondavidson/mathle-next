@@ -9,9 +9,11 @@ const spaceMono = Space_Mono({
   weight: ['400', '700'],
   subsets: ['latin'],
 });
+
 export const viewport = {
   themeColor: '#0e1117',
 };
+
 export const metadata = {
   title: 'Mathle — El juego de matemáticas diario',
   description: 'Mathle es el Wordle de las matemáticas. Adivina los valores que hacen válida la ecuación en 6 intentos. Un puzzle nuevo cada día, modo contrareloj y ranking global. ¡Gratis!',
@@ -87,7 +89,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <head>
-        
         <link rel="canonical" href="https://mathle.online" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -102,12 +103,23 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaFAQ) }}
         />
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7032825555764916"
-          crossorigin="anonymous"></script>
       </head>
       <body className={spaceMono.className}>
-        
-        <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
+
+        {/* Google Identity Services */}
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="beforeInteractive"
+        />
+
+        {/* Google AdSense — debe ir con strategy="afterInteractive" */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7032825555764916"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+
         <NProgressBar />
         <Header />
         {children}
