@@ -301,16 +301,36 @@
   font-family: 'STIX Two Text', serif;
   font-size: 22px;
   color: var(--muted);
-  transition: color .2s;
+  transition: color .25s, text-shadow .25s;
 }
-.timed-combo.hot {
+/* combo ×2 — blanco suave */
+.timed-combo.combo-low {
+  color: var(--text);
+}
+/* combo ×3–4 — amarillo */
+.timed-combo.combo-warm {
+  color: var(--yellow);
+  text-shadow: 0 0 10px rgba(251,191,36,.35);
+  animation: combo-bump .25s ease;
+}
+/* combo ×5–7 — naranja */
+.timed-combo.combo-hot {
   color: #f97316;
   text-shadow: 0 0 12px rgba(249,115,22,.5);
-  animation: combo-pulse .3s ease;
+  animation: combo-bump .25s ease;
 }
-@keyframes combo-pulse {
-  0%   { transform: scale(1.4); }
+/* combo ×8+ — rojo, pulso continuo */
+.timed-combo.combo-legendary {
+  color: var(--red);
+  animation: combo-bump .25s ease, combo-glow 1s ease-in-out infinite;
+}
+@keyframes combo-bump {
+  0%   { transform: scale(1.45); }
   100% { transform: scale(1); }
+}
+@keyframes combo-glow {
+  0%,100% { text-shadow: 0 0 8px rgba(248,113,113,.4); }
+  50%     { text-shadow: 0 0 22px rgba(248,113,113,.9), 0 0 6px rgba(255,120,120,.5); }
 }
 
 /* ── CLOCK ─────────────────────────────────────────────── */
@@ -480,6 +500,33 @@
   35%     { transform: translateX(7px); }
   55%     { transform: translateX(-5px); }
   75%     { transform: translateX(5px); }
+}
+
+/* Flash rojo: ecuación matemáticamente incorrecta */
+.timed-row.flash-error {
+  animation: flash-error .7s ease forwards;
+  border-radius: 8px;
+}
+@keyframes flash-error {
+  0%   { background: transparent;                    transform: translateX(0); }
+  10%  {                                              transform: translateX(-6px); }
+  20%  { background: rgba(248,113,113,.18);           transform: translateX(6px); }
+  40%  { background: rgba(248,113,113,.26);           transform: translateX(-4px); }
+  60%  { background: rgba(248,113,113,.16);           transform: translateX(2px); }
+  80%  { background: rgba(248,113,113,.06);           transform: translateX(0); }
+  100% { background: transparent; }
+}
+
+/* Flash naranja: saltar ecuación */
+.timed-row.flash-skip {
+  animation: flash-skip .5s ease forwards;
+  border-radius: 8px;
+}
+@keyframes flash-skip {
+  0%   { background: transparent;              opacity: 1; }
+  25%  { background: rgba(249,115,22,.20);     opacity: .85; }
+  60%  { background: rgba(249,115,22,.10);     opacity: .5; }
+  100% { background: transparent;              opacity: 0; }
 }
 
 /* ── FRAG & CELL ───────────────────────────────────────── */

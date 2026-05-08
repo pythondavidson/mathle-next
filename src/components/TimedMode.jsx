@@ -293,12 +293,11 @@ export default function TimedMode() {
     if (phase !== "playing" || !allFilled()) return;
 
     if (!equationIsValid()) {
-      // Error matemático: pierde combo y pasa automáticamente a la siguiente
+      // Error matemático: pierde combo, animación roja, pasa a la siguiente
       setCombo(0);
-      showToast("Ecuación incorrecta — combo perdido", true);
-      setRowAnim("shake");
-      setTimeout(() => setRowAnim(""), 500);
-      setTimeout(() => loadNextEq(usedIds), 600);
+      setRowAnim("flash-error");
+      setTimeout(() => setRowAnim(""), 700);
+      setTimeout(() => loadNextEq(usedIds), 700);
       return;
     }
 
@@ -332,8 +331,9 @@ export default function TimedMode() {
     setCombo(0);
     setSkipped(prev => prev + 1);
     setTimeLeft(prev => Math.max(prev - 3, 1));
-    showToast("−3s", true);
-    loadNextEq(usedIds);
+    setRowAnim("flash-skip");
+    setTimeout(() => setRowAnim(""), 500);
+    setTimeout(() => loadNextEq(usedIds), 500);
   }
 
   const timerColor = timeLeft <= 10 ? "danger" : timeLeft <= 20 ? "warning" : "safe";
@@ -423,8 +423,13 @@ export default function TimedMode() {
 
         <div className="timed-combo-wrap">
           <span className="timed-combo-label">Combo</span>
-          <span className={`timed-combo${combo >= 3 ? " hot" : ""}`}>
-            {combo > 1 ? `×${(1 + 0.5 * Math.log(combo)).toFixed(2)}` : "—"}
+          <span className={`timed-combo ${
+            combo >= 8 ? "combo-legendary" :
+            combo >= 5 ? "combo-hot" :
+            combo >= 3 ? "combo-warm" :
+            combo >= 2 ? "combo-low" : ""
+          }`}>
+            {combo > 1 ? `×${(1 + 0.6 * Math.log(combo)).toFixed(2)}` : "—"}
           </span>
         </div>
       </div>
