@@ -8,7 +8,7 @@ import { saveTimedScore, isLoggedIn } from "../services/api";
 // ═══════════════════════════════════════════════════════════════════
 //  BANCO DE ECUACIONES (fácil + medio + difícil)
 // ═══════════════════════════════════════════════════════════════════
-
+const TIMED_EQUATIONS = EQUATIONS.filter(e => e.difficulty !== "avanzado");
 const GAME_DURATION = 60;
 const BONUS_TIME = 5;
 
@@ -85,10 +85,10 @@ function evalSide(expr) {
 }
 
 function getRandomEq(usedIds) {
-  const available = EQUATIONS.filter((_, i) => !usedIds.has(i));
+  const available = TIMED_EQUATIONS.filter((_, i) => !usedIds.has(i));
   if (!available.length) return null;
   const idx = Math.floor(Math.random() * available.length);
-  const globalIdx = EQUATIONS.indexOf(available[idx]);
+  const globalIdx = TIMED_EQUATIONS.indexOf(available[idx]);
   return { eq: available[idx], id: globalIdx };
 }
 

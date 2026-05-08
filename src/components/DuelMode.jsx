@@ -6,6 +6,8 @@ import { isLoggedIn, getUser } from '../services/api';
 import './TimedMode.css';
 import './DuelMode.css';
 
+const TIMED_EQUATIONS = EQUATIONS.filter(e => e.difficulty !== "avanzado");
+
 const API_URL        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const COUNTDOWN_TOTAL = 5;
 const GAME_DURATION   = 60;
@@ -73,10 +75,10 @@ function equationIsValid(parsed, values) {
 }
 
 function getRandomEq(usedSet) {
-  const pool = EQUATIONS.filter((_,i) => !usedSet.has(i));
-  const src  = pool.length ? pool : EQUATIONS;
+  const pool = TIMED_EQUATIONS.filter((_,i) => !usedSet.has(i));
+  const src  = pool.length ? pool : TIMED_EQUATIONS;
   const pick = src[Math.floor(Math.random()*src.length)];
-  return { eq: pick, id: EQUATIONS.indexOf(pick) };
+  return { eq: pick, id: TIMED_EQUATIONS.indexOf(pick) };
 }
 
 // ── COMPONENTE ──────────────────────────────────────────────
