@@ -1,0 +1,93 @@
+/* ═══════════════════════════════════════════════════════════
+   MobileKeyboard.css
+   Solo visible en móvil (≤ 768px).
+   Posición fija al fondo — el teclado nativo nunca aparece.
+═══════════════════════════════════════════════════════════ */
+
+.mobile-kb {
+  display: none; /* oculto en escritorio */
+}
+
+@media (max-width: 768px) {
+  /* ── Contenedor fijo al fondo ──────────────────────────── */
+  .mobile-kb {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+
+    background: var(--bg, #0e1117);
+    border-top: 1px solid var(--border, #2a2d35);
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ── Fila de teclas ────────────────────────────────────── */
+  .mobile-kb__row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  /* ── Tecla base ────────────────────────────────────────── */
+  .mobile-kb__key {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text, #e8e8e8);
+    background: var(--surface, #1a1d26);
+    border: 1px solid var(--border, #2a2d35);
+    border-radius: 8px;
+    padding: 14px 0;
+    cursor: pointer;
+    transition: background 0.1s, transform 0.08s;
+    /* evitar selección de texto al pulsar rápido */
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    /* feedback táctil visual */
+    active-state: none;
+  }
+
+  .mobile-kb__key:active {
+    background: var(--surface-hover, #252836);
+    transform: scale(0.95);
+  }
+
+  .mobile-kb__key:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* ── Tecla ⌫ borrar ─────────────────────────────────── */
+  .mobile-kb__key--back {
+    font-size: 18px;
+    color: var(--muted, #888);
+    border-color: var(--border, #2a2d35);
+  }
+
+  .mobile-kb__key--back:active {
+    color: var(--red, #f87171);
+    border-color: var(--red, #f87171);
+  }
+
+  /* ── Tecla ✓ verificar ──────────────────────────────── */
+  .mobile-kb__key--enter {
+    font-size: 18px;
+    color: var(--gold, #c9a84c);
+    border-color: var(--gold, #c9a84c);
+  }
+
+  .mobile-kb__key--enter:active {
+    background: rgba(201, 168, 76, 0.15);
+  }
+
+  .mobile-kb__key--enter:disabled {
+    opacity: 0.3;
+  }
+}

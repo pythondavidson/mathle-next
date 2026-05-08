@@ -1,85 +1,51 @@
 'use client';
 import EQUATIONS from '../data/equations';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { isLoggedIn } from '../services/api';
+import { saveTimedScore } from '../services/api';
+import './TimedMode.css';
+import MobileKeyboard from './MobileKeyboard';
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import "./TimedMode.css";
-import { saveTimedScore, isLoggedIn } from "../services/api";
-
-// ═══════════════════════════════════════════════════════════════════
-//  BANCO DE ECUACIONES (fácil + medio + difícil)
-// ═══════════════════════════════════════════════════════════════════
-const TIMED_EQUATIONS = EQUATIONS.filter(e => e.difficulty !== "avanzado");
+const TIMED_EQUATIONS = EQUATIONS.filter(e => e.difficulty !== 'avanzado');
 const GAME_DURATION = 60;
 const BONUS_TIME = 5;
 
-// ═══════════════════════════════════════════════════════════════════
-//  UTILIDADES
-// ═══════════════════════════════════════════════════════════════════
 function parseEquation(eqStr) {
-  const tokens = [];
-  let buf = "";
-  let bi = 0;
-  for (let i = 0; i < eqStr.length; i++) {
-    const ch = eqStr[i];
-    if (ch === "?") {
-      if (buf) { tokens.push({ type: "frag", text: buf }); buf = ""; }
-      tokens.push({ type: "blank", index: bi++ });
-    } else { buf += ch; }
+  const tokens = []; let buf = ''; let bi = 0;
+  for (const ch of eqStr) {
+    if (ch === '?') { if (buf) { tokens.push({ type: 'frag', text: buf }); buf = ''; } tokens.push({ type: 'blank', index: bi++ }); }
+    else buf += ch;
   }
-  if (buf) tokens.push({ type: "frag", text: buf });
+  if (buf) tokens.push({ type: 'frag', text: buf });
   return tokens;
 }
 
 function superscriptify(text) {
-  return text.replace(/\^([^\s+\-×÷=()^?]+)/g, "<sup>$1</sup>");
+  return text.replace(/\^([^\s+\-×÷=()^?]+)/g, '<sup>$1</sup>');
 }
 
 function evalSide(expr) {
-  const s = expr.trim().replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
   let pos = 0;
-  const peek = () => s[pos];
-  const consume = () => s[pos++];
-  const skipSpaces = () => { while (pos < s.length && s[pos] === " ") pos++; };
-  const parseExpr = () => parseAddSub();
-  const parseAddSub = () => {
-    let left = parseMulDiv(); skipSpaces();
-    while (pos < s.length && (peek() === "+" || (peek() === "-" && s[pos - 1] !== "^"))) {
-      const op = consume();
-      left = op === "+" ? left + parseMulDiv() : left - parseMulDiv();
-      skipSpaces();
-    }
-    return left;
+  const s = expr.trim().replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+  const peek = () => s[pos]; const consume = () => s[pos++];
+  const skip = () => { while (pos < s.length && s[pos] === ' ') pos++; };
+  const parseExpr = () => {
+    let l = parseTerm(); skip();
+    while (pos < s.length && (peek() === '+' || peek() === '-')) { const op = consume(); l = op === '+' ? l + parseTerm() : l - parseTerm(); skip(); }
+    return l;
   };
-  const parseMulDiv = () => {
-    let left = parsePow(); skipSpaces();
-    while (pos < s.length && (peek() === "*" || peek() === "/")) {
-      const op = consume();
-      left = op === "*" ? left * parsePow() : left / parsePow();
-      skipSpaces();
-    }
-    return left;
+  const parseTerm = () => {
+    let l = parsePower(); skip();
+    while (pos < s.length && (peek() === '*' || peek() === '/')) { const op = consume(); l = op === '*' ? l * parsePower() : l / parsePower(); skip(); }
+    return l;
   };
-  const parsePow = () => {
-    let base = parseUnary(); skipSpaces();
-    if (pos < s.length && peek() === "^") { consume(); base = Math.pow(base, parseUnary()); }
-    return base;
-  };
-  const parseUnary = () => {
-    skipSpaces();
-    if (peek() === "-") { consume(); return -parseAtom(); }
-    if (peek() === "+") { consume(); return parseAtom(); }
-    return parseAtom();
-  };
+  const parsePower = () => { let b = parseUnary(); skip(); if (pos < s.length && peek() === '^') { consume(); b = Math.pow(b, parseUnary()); } return b; };
+  const parseUnary = () => { skip(); if (peek() === '-') { consume(); return -parseAtom(); } if (peek() === '+') { consume(); return parseAtom(); } return parseAtom(); };
   const parseAtom = () => {
-    skipSpaces();
-    if (peek() === "(") {
-      consume(); const val = parseExpr(); skipSpaces();
-      if (peek() === ")") consume(); return val;
-    }
-    let numStr = "";
-    while (pos < s.length && /[\d.]/.test(peek())) numStr += consume();
-    if (numStr === "") return NaN;
-    return parseFloat(numStr);
+    skip();
+    if (peek() === '(') { consume(); const v = parseExpr(); skip(); if (peek() === ')') consume(); return v; }
+    let numStr = ''; while (pos < s.length && /[\d.]/.test(peek())) numStr += consume();
+    if (numStr === '') return NaN; return parseFloat(numStr);
   };
   try { pos = 0; const r = parseExpr(); return isFinite(r) ? r : NaN; } catch { return NaN; }
 }
@@ -93,19 +59,16 @@ function getRandomEq(usedIds) {
 }
 
 function loadBestScore() {
-  try { return parseInt(localStorage.getItem("mathleTimed_best") || "0", 10); }
+  try { return parseInt(localStorage.getItem('mathleTimed_best') || '0', 10); }
   catch { return 0; }
 }
 function saveBestScore(s) {
   const prev = loadBestScore();
-  if (s > prev) localStorage.setItem("mathleTimed_best", String(s));
+  if (s > prev) localStorage.setItem('mathleTimed_best', String(s));
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  COMPONENTE PRINCIPAL
-// ═══════════════════════════════════════════════════════════════════
 export default function TimedMode() {
-  const [phase, setPhase] = useState("idle");
+  const [phase, setPhase] = useState('idle');
   const [eq, setEq] = useState(null);
   const [parsed, setParsed] = useState([]);
   const [values, setValues] = useState([]);
@@ -116,17 +79,25 @@ export default function TimedMode() {
   const [combo, setCombo] = useState(0);
   const [lastPoints, setLastPoints] = useState(null);
   const [bonusAnim, setBonusAnim] = useState(null);
-  const [toast, setToast] = useState({ msg: "", error: false, show: false });
+  const [toast, setToast] = useState({ msg: '', error: false, show: false });
   const [bestScore, setBestScore] = useState(loadBestScore());
   const [usedIds, setUsedIds] = useState(new Set());
-  const [rowAnim, setRowAnim] = useState("");
-  const [rootFlash, setRootFlash] = useState("");
+  const [rowAnim, setRowAnim] = useState('');
+  const [rootFlash, setRootFlash] = useState('');
   const [isNewBest, setIsNewBest] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const timerRef = useRef(null);
   const inputRefs = useRef({});
   const toastTimerRef = useRef(null);
   const scoreRef = useRef(0);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const showToast = useCallback((msg, error = false) => {
     setToast({ msg, error, show: true });
@@ -141,16 +112,16 @@ export default function TimedMode() {
       setUsedIds(new Set([fresh.id]));
       setEq(fresh.eq);
       setParsed(parseEquation(fresh.eq.eq));
-      setValues(Array(fresh.eq.blanks.length).fill(""));
+      setValues(Array(fresh.eq.blanks.length).fill(''));
     } else {
       const newUsed = new Set(currentUsed);
       newUsed.add(result.id);
       setUsedIds(newUsed);
       setEq(result.eq);
       setParsed(parseEquation(result.eq.eq));
-      setValues(Array(result.eq.blanks.length).fill(""));
+      setValues(Array(result.eq.blanks.length).fill(''));
     }
-    setTimeout(() => inputRefs.current["0"]?.focus(), 80);
+    setTimeout(() => inputRefs.current['0']?.focus(), 80);
   }
 
   function startGame() {
@@ -159,7 +130,7 @@ export default function TimedMode() {
     setUsedIds(newUsed);
     setEq(firstResult.eq);
     setParsed(parseEquation(firstResult.eq.eq));
-    setValues(Array(firstResult.eq.blanks.length).fill(""));
+    setValues(Array(firstResult.eq.blanks.length).fill(''));
     setTimeLeft(GAME_DURATION);
     setScore(0);
     scoreRef.current = 0;
@@ -168,21 +139,17 @@ export default function TimedMode() {
     setCombo(0);
     setLastPoints(null);
     setBonusAnim(null);
-    setRowAnim("");
-    setRootFlash("");
+    setRowAnim('');
+    setRootFlash('');
     setIsNewBest(false);
-    setPhase("playing");
+    setPhase('playing');
   }
 
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== 'playing') return;
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
-        if (t <= 1) {
-          clearInterval(timerRef.current);
-          setPhase("gameover");
-          return 0;
-        }
+        if (t <= 1) { clearInterval(timerRef.current); setPhase('gameover'); return 0; }
         return t - 1;
       });
     }, 1000);
@@ -190,119 +157,132 @@ export default function TimedMode() {
   }, [phase]);
 
   useEffect(() => {
-    if (phase === "gameover") {
+    if (phase === 'gameover') {
       const finalScore = scoreRef.current;
       saveBestScore(finalScore);
       const best = loadBestScore();
       setBestScore(best);
       setIsNewBest(finalScore > 0 && finalScore >= best);
-
-      // Guardar en backend si está logueado
       if (isLoggedIn() && finalScore > 0) {
-        saveTimedScore(finalScore)
-          .catch(err => console.log("Error guardando timed score:", err));
+        saveTimedScore(finalScore).catch(err => console.log('Error guardando timed score:', err));
       }
     }
   }, [phase]);
 
   function handleInput(ci, val) {
-    if (phase !== "playing") return;
+    if (phase !== 'playing') return;
     const trimmed = val.length > 1 ? val.slice(-1) : val;
-    if (trimmed !== "" && trimmed !== "-" && !/^-?\d$/.test(trimmed)) return;
+    if (trimmed !== '' && trimmed !== '-' && !/^-?\d$/.test(trimmed)) return;
     setValues(prev => { const next = [...prev]; next[ci] = trimmed; return next; });
-    if (trimmed !== "" && trimmed !== "-" && eq && ci < eq.blanks.length - 1) {
+    if (trimmed !== '' && trimmed !== '-' && eq && ci < eq.blanks.length - 1) {
       setTimeout(() => inputRefs.current[`${ci + 1}`]?.focus(), 0);
     }
   }
 
   function handleKeyDown(e, ci) {
-    if (phase !== "playing") return;
-    if (e.key === "Backspace" && values[ci] === "" && ci > 0) {
-      setValues(prev => { const n = [...prev]; n[ci - 1] = ""; return n; });
+    if (phase !== 'playing') return;
+    if (e.key === 'Backspace' && values[ci] === '' && ci > 0) {
+      setValues(prev => { const n = [...prev]; n[ci - 1] = ''; return n; });
       setTimeout(() => inputRefs.current[`${ci - 1}`]?.focus(), 0);
     }
-    if (e.key === "Enter") handleVerify();
-    if (e.key === "Tab") { e.preventDefault(); handleSkip(); }
+    if (e.key === 'Enter') handleVerify();
+    if (e.key === 'Tab') { e.preventDefault(); handleSkip(); }
+  }
+
+  function handleMobileKey(key) {
+    if (phase !== 'playing') return;
+    // Buscar el input con foco; si ninguno tiene foco, usar el primer vacío
+    let ci = -1;
+    for (let i = 0; i < values.length; i++) {
+      if (document.activeElement === inputRefs.current[`${i}`]) { ci = i; break; }
+    }
+    if (ci === -1) {
+      ci = values.findIndex(v => v === '');
+      if (ci === -1) ci = values.length - 1;
+    }
+
+    if (key === 'backspace') {
+      if (values[ci] !== '') {
+        setValues(prev => { const n = [...prev]; n[ci] = ''; return n; });
+      } else if (ci > 0) {
+        setValues(prev => { const n = [...prev]; n[ci - 1] = ''; return n; });
+        setTimeout(() => inputRefs.current[`${ci - 1}`]?.focus(), 0);
+      }
+    } else if (key === 'enter') {
+      handleVerify();
+    } else {
+      setValues(prev => { const n = [...prev]; n[ci] = key; return n; });
+      if (ci < values.length - 1) {
+        setTimeout(() => inputRefs.current[`${ci + 1}`]?.focus(), 0);
+      }
+    }
   }
 
   function buildExpr() {
-    let blankIdx = 0;
-    let expr = "";
+    let blankIdx = 0; let expr = '';
     for (const token of parsed) {
-      if (token.type === "frag") { expr += token.text; }
-      else { const v = values[blankIdx]; expr += (v === "" || v === "-") ? "?" : v; blankIdx++; }
+      if (token.type === 'frag') { expr += token.text; }
+      else { const v = values[blankIdx]; expr += (v === '' || v === '-') ? '?' : v; blankIdx++; }
     }
     return expr;
   }
 
-  function allFilled() {
-    return values.every(v => v !== "" && v !== "-");
-  }
+  function allFilled() { return values.every(v => v !== '' && v !== '-'); }
 
   function equationIsValid() {
     const full = buildExpr();
-    if (full.includes("?")) return false;
-    const sides = full.split("=");
+    if (full.includes('?')) return false;
+    const sides = full.split('=');
     if (sides.length !== 2) return false;
-    const left = evalSide(sides[0]);
-    const right = evalSide(sides[1]);
+    const left = evalSide(sides[0]); const right = evalSide(sides[1]);
     if (isNaN(left) || isNaN(right)) return false;
     return Math.abs(left - right) < 1e-9;
   }
 
   function handleVerify() {
-    if (phase !== "playing" || !allFilled()) return;
-
+    if (phase !== 'playing' || !allFilled()) return;
     if (!equationIsValid()) {
-      // Error matemático: pierde combo, animación roja, pasa a la siguiente
       setCombo(0);
-      setRootFlash("flash-error");
-      setRowAnim("shake");
-      setTimeout(() => { setRootFlash(""); setRowAnim(""); }, 700);
+      setRootFlash('flash-error'); setRowAnim('shake');
+      setTimeout(() => { setRootFlash(''); setRowAnim(''); }, 700);
       setTimeout(() => loadNextEq(usedIds), 700);
       return;
     }
-
     const newCombo = combo + 1;
-    // Factor logarítmico: combo 1=×1.0, 2=×1.35, 5=×1.80, 10=×2.15 (se aplana)
     const comboMult = 1 + 0.5 * Math.log(newCombo);
     const basePoints = eq.points;
     const timeBonus = Math.floor(timeLeft * 2);
     const totalPoints = Math.round((basePoints + timeBonus) * comboMult);
-
     setCombo(newCombo);
     const newScore = scoreRef.current + totalPoints;
     scoreRef.current = newScore;
     setScore(newScore);
     setSolved(prev => prev + 1);
-
-    if (eq.difficulty === "difícil") {
+    if (eq.difficulty === 'difícil') {
       setTimeLeft(prev => Math.min(prev + BONUS_TIME, GAME_DURATION));
       setBonusAnim({ key: Date.now() });
       setTimeout(() => setBonusAnim(null), 1400);
     }
-
     setLastPoints({ pts: totalPoints, combo: parseFloat(comboMult.toFixed(2)), key: Date.now() });
     setTimeout(() => setLastPoints(null), 1200);
-
     loadNextEq(new Set(usedIds));
   }
 
   function handleSkip() {
-    if (phase !== "playing") return;
+    if (phase !== 'playing') return;
     setCombo(0);
     setSkipped(prev => prev + 1);
     setTimeLeft(prev => Math.max(prev - 3, 1));
-    setRootFlash("flash-skip");
-    setTimeout(() => setRootFlash(""), 550);
+    setRootFlash('flash-skip');
+    setTimeout(() => setRootFlash(''), 550);
     loadNextEq(usedIds);
   }
 
-  const timerColor = timeLeft <= 10 ? "danger" : timeLeft <= 20 ? "warning" : "safe";
+  const timerColor = timeLeft <= 10 ? 'danger' : timeLeft <= 20 ? 'warning' : 'safe';
   const timerPct = (timeLeft / GAME_DURATION) * 100;
 
-  // ── IDLE ───────────────────────────────────────────────────────
-  if (phase === "idle") {
+  // ── IDLE ──────────────────────────────────────────────────────
+  if (phase === 'idle') {
     return (
       <div className="timed-root timed-root--idle">
         <div className="timed-idle">
@@ -324,8 +304,8 @@ export default function TimedMode() {
     );
   }
 
-  // ── GAME OVER ──────────────────────────────────────────────────
-  if (phase === "gameover") {
+  // ── GAME OVER ─────────────────────────────────────────────────
+  if (phase === 'gameover') {
     return (
       <div className="timed-root timed-root--idle">
         <div className="timed-gameover">
@@ -358,10 +338,10 @@ export default function TimedMode() {
     );
   }
 
-  // ── PLAYING ────────────────────────────────────────────────────
+  // ── PLAYING ───────────────────────────────────────────────────
   return (
-    <div className={`timed-root${rootFlash ? ` ${rootFlash}` : ""}`}>
-      <div className={`timed-toast${toast.show ? " show" : ""}${toast.error ? " error" : ""}`}>
+    <div className={`timed-root${rootFlash ? ` ${rootFlash}` : ''}`}>
+      <div className={`timed-toast${toast.show ? ' show' : ''}${toast.error ? ' error' : ''}`}>
         {toast.msg}
       </div>
 
@@ -386,12 +366,12 @@ export default function TimedMode() {
         <div className="timed-combo-wrap">
           <span className="timed-combo-label">Combo</span>
           <span className={`timed-combo ${
-            combo >= 8 ? "combo-legendary" :
-            combo >= 5 ? "combo-hot" :
-            combo >= 3 ? "combo-warm" :
-            combo >= 2 ? "combo-low" : ""
+            combo >= 8 ? 'combo-legendary' :
+            combo >= 5 ? 'combo-hot' :
+            combo >= 3 ? 'combo-warm' :
+            combo >= 2 ? 'combo-low' : ''
           }`}>
-            {combo > 1 ? `×${(1 + 0.6 * Math.log(combo)).toFixed(2)}` : "—"}
+            {combo > 1 ? `×${(1 + 0.6 * Math.log(combo)).toFixed(2)}` : '—'}
           </span>
         </div>
       </div>
@@ -401,18 +381,14 @@ export default function TimedMode() {
       </div>
 
       <div className="timed-diff-row">
-        <div className="timed-diff-badge">
-          {eq?.difficulty} · {eq?.points} pts base
-        </div>
-        {eq?.difficulty === "difícil" && (
-          <div className="timed-bonus-tag">⚡ +{BONUS_TIME}s</div>
-        )}
+        <div className="timed-diff-badge">{eq?.difficulty} · {eq?.points} pts base</div>
+        {eq?.difficulty === 'difícil' && <div className="timed-bonus-tag">⚡ +{BONUS_TIME}s</div>}
       </div>
 
       {eq && (
         <div
           className="timed-eq-template"
-          dangerouslySetInnerHTML={{ __html: superscriptify(eq.eq.replace(/\?/g, "▢")) }}
+          dangerouslySetInnerHTML={{ __html: superscriptify(eq.eq.replace(/\?/g, '▢')) }}
         />
       )}
 
@@ -423,16 +399,12 @@ export default function TimedMode() {
             {lastPoints.combo > 1 && <span className="timed-float-combo"> ×{lastPoints.combo}</span>}
           </div>
         )}
-        {bonusAnim && (
-          <div className="timed-float-bonus" key={bonusAnim.key}>
-            BONUS +{BONUS_TIME}s
-          </div>
-        )}
+        {bonusAnim && <div className="timed-float-bonus" key={bonusAnim.key}>BONUS +{BONUS_TIME}s</div>}
       </div>
 
       <div className={`timed-row ${rowAnim}`}>
         {parsed.map((token, ti) => {
-          if (token.type === "frag") {
+          if (token.type === 'frag') {
             return (
               <span key={ti} className="timed-frag"
                 dangerouslySetInnerHTML={{ __html: superscriptify(token.text) }} />
@@ -444,7 +416,8 @@ export default function TimedMode() {
               <input
                 ref={el => { inputRefs.current[`${ci}`] = el; }}
                 type="number"
-                value={values[ci] ?? ""}
+                inputMode={isMobile ? 'none' : 'numeric'}
+                value={values[ci] ?? ''}
                 onChange={e => handleInput(ci, e.target.value)}
                 onKeyDown={e => handleKeyDown(e, ci)}
                 tabIndex={ci + 1}
@@ -467,6 +440,13 @@ export default function TimedMode() {
         <span>✓ {solved} resueltas</span>
         <span>↷ {skipped} saltadas</span>
       </div>
+
+      {isMobile && (
+        <MobileKeyboard
+          onKey={handleMobileKey}
+          disabled={phase !== 'playing'}
+        />
+      )}
     </div>
   );
 }

@@ -615,6 +615,7 @@
   :root { --cell: 44px; }
   .timed-root {
     padding-top: 56px;
+    padding-bottom: 220px;
     overflow-x: hidden;
   }
   .timed-root--idle {

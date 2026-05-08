@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./DailyGame.css";
 import { saveDailyScore, isLoggedIn } from "../services/api";
+import MobileKeyboard from './MobileKeyboard';
 
 const DAILY_EQUATIONS = EQUATIONS.filter(e => e.difficulty === "avanzado" && e.blanks.length === 6);
 
@@ -84,12 +85,20 @@ export default function DailyGame() {
   const [cellStates, setCellStates] = useState(Array.from({ length: MAX_ATTEMPTS }, () => []));
   const [rowAnim, setRowAnim] = useState(Array(MAX_ATTEMPTS).fill(""));
   const [flippingCells, setFlippingCells] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
 
   const timerRef = useRef(null);
   const inputRefs = useRef({});
   const toastTimerRef = useRef(null);
   const gameOverRef = useRef(false);
   const finalSecondsRef = useRef(0);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   function startGame() {
     const chosen = getDailyEquation();
@@ -161,6 +170,48 @@ export default function DailyGame() {
       setTimeout(() => inputRefs.current[`${r}-${ci - 1}`]?.focus(), 0);
     }
     if (e.key === "Enter") attemptVerify(r);
+  }
+
+  function handleMobileKey(key) {
+    if (gameOver) return;
+    const r = currentRow;
+    // Buscar el input con foco; si ninguno tiene foco, usar el primero vacío
+    let ci = -1;
+    for (let i = 0; i < values[r].length; i++) {
+      if (document.activeElement === inputRefs.current[`${r}-${i}`]) { ci = i; break; }
+    }
+    if (ci === -1) {
+      ci = values[r].findIndex(v => v === "");
+      if (ci === -1) ci = values[r].length - 1;
+    }
+
+    if (key === 'backspace') {
+      if (values[r][ci] !== '') {
+        setValues(prev => {
+          const next = prev.map(row => [...row]);
+          next[r][ci] = '';
+          return next;
+        });
+      } else if (ci > 0) {
+        setValues(prev => {
+          const next = prev.map(row => [...row]);
+          next[r][ci - 1] = '';
+          return next;
+        });
+        setTimeout(() => inputRefs.current[`${r}-${ci - 1}`]?.focus(), 0);
+      }
+    } else if (key === 'enter') {
+      attemptVerify(r);
+    } else {
+      setValues(prev => {
+        const next = prev.map(row => [...row]);
+        next[r][ci] = key;
+        return next;
+      });
+      if (eq && ci < eq.blanks.length - 1) {
+        setTimeout(() => inputRefs.current[`${r}-${ci + 1}`]?.focus(), 0);
+      }
+    }
   }
 
   function allFilled(r) {
@@ -293,13 +344,11 @@ export default function DailyGame() {
     setStats(newStats);
 
     const finalSecs = finalSecondsRef.current;
-    // Score por tiempo: 5000 pts si ≤30s, 1000 pts si ≥120s, lineal entre medias
     const timeScore = finalSecs <= 30
       ? 5000
       : finalSecs >= 120
         ? 1000
         : 5000 - ((finalSecs - 30) / 90) * 4000;
-    // Factor por intentos: lineal de 1.0 (intento 1) a 0.5 (intento 6)
     const attemptFactor = 1 - ((finalAttempts - 1) / 5) * 0.5;
     const points = didWin ? Math.round(timeScore * attemptFactor) : 0;
     setResult({ won: didWin, attempts: finalAttempts, seconds: finalSecs, points });
@@ -464,6 +513,7 @@ export default function DailyGame() {
                     <input
                       ref={el => { inputRefs.current[`${r}-${ci}`] = el; }}
                       type="number"
+                      inputMode={isMobile ? "none" : "numeric"}
                       value={values[r]?.[ci] ?? ""}
                       disabled={r !== currentRow || gameOver}
                       tabIndex={r === currentRow ? ci + 1 : -1}
@@ -492,6 +542,13 @@ export default function DailyGame() {
           </>
         )}
       </div>
+
+      {isMobile && (
+        <MobileKeyboard
+          onKey={handleMobileKey}
+          disabled={gameOver}
+        />
+      )}
     </div>
   );
 }

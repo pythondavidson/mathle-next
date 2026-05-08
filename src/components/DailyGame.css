@@ -519,6 +519,7 @@
   :root { --cell: clamp(32px, 10vw, 44px); }
   .game-root {
     padding-top: 56px;
+    padding-bottom: 220px;
     height: 100dvh;
     overflow: hidden;
   }

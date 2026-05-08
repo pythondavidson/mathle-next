@@ -5,17 +5,15 @@ import { io } from 'socket.io-client';
 import { isLoggedIn, getUser } from '../services/api';
 import './TimedMode.css';
 import './DuelMode.css';
+import MobileKeyboard from './MobileKeyboard';
 
 const TIMED_EQUATIONS = EQUATIONS.filter(e => e.difficulty !== "avanzado");
 
-const API_URL        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL         = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const COUNTDOWN_TOTAL = 5;
 const GAME_DURATION   = 60;
 const BONUS_TIME      = 5;
 
-// ── BANCO DE ECUACIONES ─────────────────────────────────────
-
-// ── UTILIDADES ──────────────────────────────────────────────
 function parseEquation(eqStr) {
   const tokens = []; let buf = ''; let bi = 0;
   for (const ch of eqStr) {
@@ -81,7 +79,6 @@ function getRandomEq(usedSet) {
   return { eq: pick, id: TIMED_EQUATIONS.indexOf(pick) };
 }
 
-// ── COMPONENTE ──────────────────────────────────────────────
 export default function DuelMode() {
   const [fase, setFase]               = useState('lobby');
   const [codigo, setCodigo]           = useState('');
@@ -90,25 +87,22 @@ export default function DuelMode() {
   const [resultado, setResultado]     = useState(null);
   const [error, setError]             = useState('');
   const [copiado, setCopiado]         = useState(false);
-
-  // countdown
-  const [countdown, setCountdown] = useState(COUNTDOWN_TOTAL);
-
-  // juego
-  const [timeLeft, setTimeLeft]   = useState(GAME_DURATION);
-  const [score, setScore]         = useState(0);
-  const [combo, setCombo]         = useState(0);
-  const [solved, setSolved]       = useState(0);
-  const [skipped, setSkipped]     = useState(0);
-  const [lastPoints, setLastPoints] = useState(null);
-  const [bonusAnim, setBonusAnim] = useState(null);
-  const [toast, setToast]         = useState({ msg:'', error:false, show:false });
-  const [eq, setEq]               = useState(null);
-  const [parsed, setParsed]       = useState([]);
-  const [values, setValues]       = useState([]);
-  const [rowAnim, setRowAnim]     = useState('');
-  const [rootFlash, setRootFlash] = useState('');
-  const [usedIds, setUsedIds]     = useState(new Set());
+  const [countdown, setCountdown]     = useState(COUNTDOWN_TOTAL);
+  const [timeLeft, setTimeLeft]       = useState(GAME_DURATION);
+  const [score, setScore]             = useState(0);
+  const [combo, setCombo]             = useState(0);
+  const [solved, setSolved]           = useState(0);
+  const [skipped, setSkipped]         = useState(0);
+  const [lastPoints, setLastPoints]   = useState(null);
+  const [bonusAnim, setBonusAnim]     = useState(null);
+  const [toast, setToast]             = useState({ msg:'', error:false, show:false });
+  const [eq, setEq]                   = useState(null);
+  const [parsed, setParsed]           = useState([]);
+  const [values, setValues]           = useState([]);
+  const [rowAnim, setRowAnim]         = useState('');
+  const [rootFlash, setRootFlash]     = useState('');
+  const [usedIds, setUsedIds]         = useState(new Set());
+  const [isMobile, setIsMobile]       = useState(false);
 
   const socketRef    = useRef(null);
   const inputRefs    = useRef({});
@@ -124,6 +118,13 @@ export default function DuelMode() {
 
   const user     = getUser();
   const username = user?.username || 'tú';
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => () => {
     socketRef.current?.disconnect();
@@ -159,7 +160,6 @@ export default function DuelMode() {
       if (timeRef.current <= 0) {
         clearInterval(gameTimerRef.current);
         setFase('esperando-resultado');
-        // Enviar score final al servidor
         socketRef.current?.emit('tiempo-agotado', {
           codigo: codigoActivo,
           score: scoreRef.current,
@@ -193,7 +193,6 @@ export default function DuelMode() {
       setParsed(parseEquation(result.eq.eq));
       setValues(Array(result.eq.blanks.length).fill(''));
 
-      // Countdown 5→0
       let c = COUNTDOWN_TOTAL;
       setCountdown(c);
       setFase('countdown');
@@ -210,7 +209,6 @@ export default function DuelMode() {
       }, 1000);
     });
 
-    // El servidor nos dice que el juego arranca (después del countdown del servidor)
     socket.on('duelo-arranca', () => {
       const ca = codigoRef.current || codigoInput.trim().toUpperCase();
       startGameTimer(ca);
@@ -257,11 +255,38 @@ export default function DuelMode() {
     if (e.key === 'Tab')   { e.preventDefault(); handleVerify(); }
   }
 
+  function handleMobileKey(key) {
+    if (fase !== 'jugando') return;
+    let ci = -1;
+    for (let i = 0; i < values.length; i++) {
+      if (document.activeElement === inputRefs.current[`${i}`]) { ci = i; break; }
+    }
+    if (ci === -1) {
+      ci = values.findIndex(v => v === '');
+      if (ci === -1) ci = values.length - 1;
+    }
+
+    if (key === 'backspace') {
+      if (values[ci] !== '') {
+        setValues(prev => { const n=[...prev]; n[ci]=''; return n; });
+      } else if (ci > 0) {
+        setValues(prev => { const n=[...prev]; n[ci-1]=''; return n; });
+        setTimeout(() => inputRefs.current[`${ci-1}`]?.focus(), 0);
+      }
+    } else if (key === 'enter') {
+      handleVerify();
+    } else {
+      setValues(prev => { const n=[...prev]; n[ci]=key; return n; });
+      if (ci < values.length - 1) {
+        setTimeout(() => inputRefs.current[`${ci+1}`]?.focus(), 0);
+      }
+    }
+  }
+
   function handleVerify() {
     if (fase !== 'jugando') return;
     if (values.some(v => v===''||v==='-')) return;
     if (!equationIsValid(parsed, values)) {
-      // Error: pierde combo, flash rojo en toda la interfaz, pasa a la siguiente
       comboRef.current = 0;
       setCombo(0);
       setRootFlash('flash-error');
@@ -270,7 +295,6 @@ export default function DuelMode() {
       setTimeout(() => loadNextEq(usedIdsRef.current), 700);
       return;
     }
-    // Combo logarítmico: ×1.0 → ×1.42 → ×1.97 → ×2.38...
     const newCombo   = comboRef.current + 1;
     comboRef.current = newCombo;
     const comboMult  = 1 + 0.6 * Math.log(newCombo);
@@ -293,7 +317,6 @@ export default function DuelMode() {
 
     setLastPoints({ pts: totalPoints, combo: parseFloat(comboMult.toFixed(2)), key: Date.now() });
     setTimeout(() => setLastPoints(null), 1200);
-
     loadNextEq(usedIdsRef.current);
   }
 
@@ -348,39 +371,36 @@ export default function DuelMode() {
           El que más puntos haga, <strong>gana</strong>.
         </p>
         {error && <div className="duel-error">{error}</div>}
-        <button className="timed-start-btn" onClick={crearDuelo}>+ Crear duelo</button>
-        <div className="duel-divider">o</div>
+        <button className="timed-start-btn" onClick={crearDuelo}>Crear duelo</button>
+        <div className="duel-divider">— o —</div>
         <div className="duel-join-row">
           <input
             className="duel-input"
             placeholder="CÓDIGO"
             value={codigoInput}
             onChange={e => setCodigoInput(e.target.value.toUpperCase())}
-            onKeyDown={e => e.key === 'Enter' && unirseADuelo()}
-            maxLength={5}
+            maxLength={6}
           />
-          <button className="timed-start-btn" style={{ width:'auto', padding:'14px 24px' }} onClick={unirseADuelo}>Unirse</button>
+          <button className="timed-start-btn" style={{ padding:'14px 20px' }} onClick={unirseADuelo}>Unirse</button>
         </div>
-        <div className="timed-idle-hint">Tab = saltar ecuación (−3s)</div>
       </div>
     </div>
   );
 
-  // ── ESPERANDO ────────────────────────────────────────────
+  // ── ESPERANDO RIVAL ──────────────────────────────────────
   if (fase === 'esperando') return (
     <div className="timed-root timed-root--idle">
-      {copiado && <div className="duel-copiado-popup">✓ Código copiado</div>}
       <div className="timed-idle">
-        <div className="timed-idle-icon">⏳</div>
-        <h1 className="timed-idle-title">Esperando rival...</h1>
+        <div className="timed-idle-icon">🔗</div>
+        <h1 className="timed-idle-title">Sala creada</h1>
+        <p className="timed-idle-desc">Comparte este código con tu rival:</p>
         <div className="timed-best-wrap">
-          <span className="timed-best-label">Código del duelo</span>
-          <span className="timed-best-value" style={{ letterSpacing:'0.2em' }}>{codigo}</span>
+          <span className="timed-best-label">Código</span>
+          <span className="timed-best-value" style={{ letterSpacing:'8px' }}>{codigo}</span>
         </div>
         <button className="timed-start-btn" onClick={() => {
           navigator.clipboard.writeText(codigo);
-          setCopiado(true);
-          setTimeout(() => setCopiado(false), 2000);
+          setCopiado(true); setTimeout(() => setCopiado(false), 2000);
         }}>
           {copiado ? '✓ Código copiado' : 'Copiar código'}
         </button>
@@ -433,17 +453,15 @@ export default function DuelMode() {
 
   // ── JUGANDO ──────────────────────────────────────────────
   if (fase === 'jugando') return (
-    <div className={`timed-root duel-root--playing${rootFlash ? ` ${rootFlash}` : ""}`}>
+    <div className={`timed-root duel-root--playing${rootFlash ? ` ${rootFlash}` : ''}`}>
       <div className={`timed-toast${toast.show?' show':''}${toast.error?' error':''}`}>{toast.msg}</div>
 
-      {/* VS strip — primera fila */}
       <div className="duel-vs-top">
         <span className="duel-vs-name duel-vs-you">{username}</span>
         <span className="duel-vs-label">VS</span>
         <span className="duel-vs-name duel-vs-rival">{rival}</span>
       </div>
 
-      {/* Header: puntos | timer | rival */}
       <div className="timed-header">
         <div className="timed-score-wrap">
           <span className="timed-score-label">Puntos</span>
@@ -512,6 +530,7 @@ export default function DuelMode() {
               <input
                 ref={el => { inputRefs.current[`${ci}`] = el; }}
                 type="number"
+                inputMode={isMobile ? 'none' : 'numeric'}
                 value={values[ci] ?? ''}
                 onChange={e => handleInput(ci, e.target.value)}
                 onKeyDown={e => handleKeyDown(e, ci)}
@@ -544,13 +563,20 @@ export default function DuelMode() {
       >
         ⚑ Rendirse
       </button>
+
+      {isMobile && (
+        <MobileKeyboard
+          onKey={handleMobileKey}
+          disabled={fase !== 'jugando'}
+        />
+      )}
     </div>
   );
 
   // ── RESULTADO ────────────────────────────────────────────
   if (fase === 'resultado') {
-    const gane   = resultado?.ganador === username;
-    const empate = resultado?.empate;
+    const gane    = resultado?.ganador === username;
+    const empate  = resultado?.empate;
     const myScore = resultado?.scores?.[username] ?? score;
     const rvScore = resultado?.scores?.[rival] ?? 0;
     const mySolved = resultado?.solved?.[username] ?? solved;
