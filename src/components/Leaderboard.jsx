@@ -12,9 +12,9 @@ const TIME_FILTERS = [
 ];
 
 const MODE_FILTERS = [
-  { key: "diario",      label: "Diario" },
+  { key: "diario",       label: "Diario" },
   { key: "contrarreloj", label: "Contrareloj" },
-  { key: "ambos",       label: "Global" },
+  { key: "ambos",        label: "Global" },
 ];
 
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -22,12 +22,14 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 export default function Leaderboard() {
   const router = useRouter();
   const [timeFilter, setTimeFilter] = useState("hoy");
-  const [modeFilter, setModeFilter] = useState("ambos");
+  const [modeFilter, setModeFilter] = useState("diario");
   const [rows, setRows]             = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(false);
 
-  useEffect(() => { loadLeaderboard(timeFilter, modeFilter); }, [timeFilter, modeFilter]);
+  useEffect(() => {
+    loadLeaderboard(timeFilter, modeFilter);
+  }, [timeFilter, modeFilter]);
 
   async function loadLeaderboard(tf, mf) {
     setLoading(true);
@@ -56,7 +58,7 @@ export default function Leaderboard() {
         <p className="lb-subtitle">Los mejores matemáticos</p>
       </div>
 
-      {/* Filtro de modo — nivel principal */}
+      {/* Filtro de modo */}
       <div className="lb-mode-filters">
         {MODE_FILTERS.map(f => (
           <button
@@ -69,7 +71,7 @@ export default function Leaderboard() {
         ))}
       </div>
 
-      {/* Filtro de tiempo — nivel secundario */}
+      {/* Filtro de tiempo */}
       <div className="lb-filters">
         {TIME_FILTERS.map(f => (
           <button
@@ -86,7 +88,7 @@ export default function Leaderboard() {
         <div className="lb-head">
           <div className="lb-head-pos">#</div>
           <div className="lb-head-user">Usuario</div>
-          <div className="lb-head-pts">Puntos</div>
+          <div className="lb-head-pts">{modeFilter === "ambos" ? "Total" : "Récord"}</div>
           <div className="lb-head-racha">Racha</div>
         </div>
 
@@ -125,7 +127,9 @@ export default function Leaderboard() {
       </div>
 
       {!loading && !error && (
-        <p className="lb-notice">Datos actualizados en tiempo real</p>
+        <p className="lb-notice">
+          {modeFilter === "ambos" ? "Puntuación acumulada de todos los modos" : "Mejor partida individual"}
+        </p>
       )}
     </div>
   );
