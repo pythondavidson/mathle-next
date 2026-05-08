@@ -213,7 +213,7 @@
     padding-top: 48px;         /* espacio bajo el header */
     padding-bottom: 32px;
   }
- 
+  .timed-idle{padding-top: 200px;}
   /* Modo jugando: reducir el padding-top excesivo.
      Solo afecta a .duel-root--playing, no a las idle. */
   .duel-root--playing {
