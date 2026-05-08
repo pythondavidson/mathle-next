@@ -5,32 +5,39 @@ import { useRouter } from "next/navigation";
 import { getDailyLeaderboard } from "../services/api";
 import "./Leaderboard.css";
 
-const FILTERS = [
+const TIME_FILTERS = [
   { key: "hoy",     label: "Hoy" },
   { key: "semana",  label: "Semana" },
   { key: "alltime", label: "All-time" },
+];
+
+const MODE_FILTERS = [
+  { key: "diario",      label: "Diario" },
+  { key: "contrarreloj", label: "Contrareloj" },
+  { key: "ambos",       label: "Global" },
 ];
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 export default function Leaderboard() {
   const router = useRouter();
-  const [filter, setFilter] = useState("hoy");
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [timeFilter, setTimeFilter] = useState("hoy");
+  const [modeFilter, setModeFilter] = useState("ambos");
+  const [rows, setRows]             = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState(false);
 
-  useEffect(() => { loadLeaderboard(filter); }, [filter]);
+  useEffect(() => { loadLeaderboard(timeFilter, modeFilter); }, [timeFilter, modeFilter]);
 
-  async function loadLeaderboard(f) {
+  async function loadLeaderboard(tf, mf) {
     setLoading(true);
     setError(false);
     try {
-      const res = await getDailyLeaderboard(f);
+      const res = await getDailyLeaderboard(tf, mf);
       const data = res.data.map((item, i) => ({
-        pos: i + 1,
-        user: item.username,
-        pts: item.pts,
+        pos:   i + 1,
+        user:  item.username,
+        pts:   item.pts,
         racha: item.racha || 0,
       }));
       setRows(data);
@@ -49,12 +56,26 @@ export default function Leaderboard() {
         <p className="lb-subtitle">Los mejores matemáticos</p>
       </div>
 
-      <div className="lb-filters">
-        {FILTERS.map(f => (
+      {/* Filtro de modo — nivel principal */}
+      <div className="lb-mode-filters">
+        {MODE_FILTERS.map(f => (
           <button
             key={f.key}
-            className={`lb-filter-btn${filter === f.key ? " active" : ""}`}
-            onClick={() => setFilter(f.key)}
+            className={`lb-mode-btn${modeFilter === f.key ? " active" : ""}`}
+            onClick={() => setModeFilter(f.key)}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Filtro de tiempo — nivel secundario */}
+      <div className="lb-filters">
+        {TIME_FILTERS.map(f => (
+          <button
+            key={f.key}
+            className={`lb-filter-btn${timeFilter === f.key ? " active" : ""}`}
+            onClick={() => setTimeFilter(f.key)}
           >
             {f.label}
           </button>
@@ -62,7 +83,6 @@ export default function Leaderboard() {
       </div>
 
       <div className="lb-table-wrap">
-
         <div className="lb-head">
           <div className="lb-head-pos">#</div>
           <div className="lb-head-user">Usuario</div>
@@ -76,7 +96,9 @@ export default function Leaderboard() {
               <div className="lb-spinner" />
             </div>
           )}
-          {!loading && error && <div className="lb-empty">Error al cargar el ranking</div>}
+          {!loading && error && (
+            <div className="lb-empty">Error al cargar el ranking</div>
+          )}
           {!loading && !error && rows.length === 0 && (
             <div className="lb-empty">Nadie ha jugado todavía. ¡Sé el primero!</div>
           )}

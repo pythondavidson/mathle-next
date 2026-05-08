@@ -62,6 +62,37 @@
 .lb-filter-btn:hover { color: #e2e8f0; }
 .lb-filter-btn.active { background: #c9a84c; color: #0e1117; font-weight: 700; }
 
+/* ── FILTRO DE MODO (nivel principal) ─────────────────── */
+.lb-mode-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.lb-mode-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: 1px solid #2a3145;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all .2s;
+}
+.lb-mode-btn:hover {
+  color: #e2e8f0;
+  border-color: #3a4155;
+}
+.lb-mode-btn.active {
+  background: transparent;
+  border-color: #c9a84c;
+  color: #c9a84c;
+  font-weight: 700;
+}
+
 /* ── TABLA ─────────────────────────────────────────────── */
 .lb-table-wrap {
   width: 100%;
