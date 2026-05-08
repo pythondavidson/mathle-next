@@ -86,6 +86,8 @@ export default function DailyGame() {
   const [rowAnim, setRowAnim] = useState(Array(MAX_ATTEMPTS).fill(""));
   const [flippingCells, setFlippingCells] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [kbOpen, setKbOpen] = useState(false);
+  const focusedCellRef = useRef({ r: 0, ci: 0 });
 
   const timerRef = useRef(null);
   const inputRefs = useRef({});
@@ -175,15 +177,7 @@ export default function DailyGame() {
   function handleMobileKey(key) {
     if (gameOver) return;
     const r = currentRow;
-    // Buscar el input con foco; si ninguno tiene foco, usar el primero vacío
-    let ci = -1;
-    for (let i = 0; i < values[r].length; i++) {
-      if (document.activeElement === inputRefs.current[`${r}-${i}`]) { ci = i; break; }
-    }
-    if (ci === -1) {
-      ci = values[r].findIndex(v => v === "");
-      if (ci === -1) ci = values[r].length - 1;
-    }
+    let ci = focusedCellRef.current.ci;
 
     if (key === 'backspace') {
       if (values[r][ci] !== '') {
@@ -209,7 +203,9 @@ export default function DailyGame() {
         return next;
       });
       if (eq && ci < eq.blanks.length - 1) {
-        setTimeout(() => inputRefs.current[`${r}-${ci + 1}`]?.focus(), 0);
+        const next = ci + 1;
+        focusedCellRef.current = { r, ci: next };
+        setTimeout(() => inputRefs.current[`${r}-${next}`]?.focus(), 0);
       }
     }
   }
@@ -519,6 +515,12 @@ export default function DailyGame() {
                       tabIndex={r === currentRow ? ci + 1 : -1}
                       onChange={e => handleInput(r, ci, e.target.value)}
                       onKeyDown={e => handleKeyDown(e, r, ci)}
+                      onFocus={() => {
+                        if (isMobile) {
+                          focusedCellRef.current = { r, ci };
+                          setKbOpen(true);
+                        }
+                      }}
                     />
                   </div>
                 );
@@ -545,7 +547,9 @@ export default function DailyGame() {
 
       {isMobile && (
         <MobileKeyboard
+          open={kbOpen && !gameOver}
           onKey={handleMobileKey}
+          onClose={() => setKbOpen(false)}
           disabled={gameOver}
         />
       )}

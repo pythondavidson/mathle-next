@@ -86,6 +86,8 @@ export default function TimedMode() {
   const [rootFlash, setRootFlash] = useState('');
   const [isNewBest, setIsNewBest] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [kbOpen, setKbOpen] = useState(false);
+  const focusedCellRef = useRef(0);
 
   const timerRef = useRef(null);
   const inputRefs = useRef({});
@@ -191,15 +193,7 @@ export default function TimedMode() {
 
   function handleMobileKey(key) {
     if (phase !== 'playing') return;
-    // Buscar el input con foco; si ninguno tiene foco, usar el primer vacío
-    let ci = -1;
-    for (let i = 0; i < values.length; i++) {
-      if (document.activeElement === inputRefs.current[`${i}`]) { ci = i; break; }
-    }
-    if (ci === -1) {
-      ci = values.findIndex(v => v === '');
-      if (ci === -1) ci = values.length - 1;
-    }
+    let ci = focusedCellRef.current;
 
     if (key === 'backspace') {
       if (values[ci] !== '') {
@@ -213,7 +207,9 @@ export default function TimedMode() {
     } else {
       setValues(prev => { const n = [...prev]; n[ci] = key; return n; });
       if (ci < values.length - 1) {
-        setTimeout(() => inputRefs.current[`${ci + 1}`]?.focus(), 0);
+        const next = ci + 1;
+        focusedCellRef.current = next;
+        setTimeout(() => inputRefs.current[`${next}`]?.focus(), 0);
       }
     }
   }
@@ -421,6 +417,12 @@ export default function TimedMode() {
                 onChange={e => handleInput(ci, e.target.value)}
                 onKeyDown={e => handleKeyDown(e, ci)}
                 tabIndex={ci + 1}
+                onFocus={() => {
+                  if (isMobile) {
+                    focusedCellRef.current = ci;
+                    setKbOpen(true);
+                  }
+                }}
               />
             </div>
           );
@@ -443,7 +445,9 @@ export default function TimedMode() {
 
       {isMobile && (
         <MobileKeyboard
+          open={kbOpen && phase === 'playing'}
           onKey={handleMobileKey}
+          onClose={() => setKbOpen(false)}
           disabled={phase !== 'playing'}
         />
       )}

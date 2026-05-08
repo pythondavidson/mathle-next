@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════════
    MobileKeyboard.css
    Solo visible en móvil (≤ 768px).
-   Posición fija al fondo — el teclado nativo nunca aparece.
+   Comportamiento: desplegable desde abajo con transición CSS.
 ═══════════════════════════════════════════════════════════ */
 
 .mobile-kb {
-  display: none; /* oculto en escritorio */
+  display: none;
 }
 
 @media (max-width: 768px) {
@@ -24,7 +24,27 @@
     background: var(--bg, #0e1117);
     border-top: 1px solid var(--border, #2a2d35);
     padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
+
+    /* Estado cerrado: fuera de pantalla hacia abajo */
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform;
+  }
+
+  /* Estado abierto: en pantalla */
+  .mobile-kb--open {
+    transform: translateY(0);
+  }
+
+  /* ── Asa visual ────────────────────────────────────────── */
+  .mobile-kb__handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border, #2a2d35);
+    border-radius: 2px;
+    margin: 0 auto 4px;
+    flex-shrink: 0;
   }
 
   /* ── Fila de teclas ────────────────────────────────────── */
@@ -46,17 +66,14 @@
     padding: 14px 0;
     cursor: pointer;
     transition: background 0.1s, transform 0.08s;
-    /* evitar selección de texto al pulsar rápido */
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    /* feedback táctil visual */
-    active-state: none;
   }
 
   .mobile-kb__key:active {
     background: var(--surface-hover, #252836);
-    transform: scale(0.95);
+    transform: scale(0.94);
   }
 
   .mobile-kb__key:disabled {
@@ -68,7 +85,6 @@
   .mobile-kb__key--back {
     font-size: 18px;
     color: var(--muted, #888);
-    border-color: var(--border, #2a2d35);
   }
 
   .mobile-kb__key--back:active {

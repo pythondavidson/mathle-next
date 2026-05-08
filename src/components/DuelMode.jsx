@@ -103,6 +103,8 @@ export default function DuelMode() {
   const [rootFlash, setRootFlash]     = useState('');
   const [usedIds, setUsedIds]         = useState(new Set());
   const [isMobile, setIsMobile]       = useState(false);
+  const [kbOpen, setKbOpen]           = useState(false);
+  const focusedCellRef                = useRef(0);
 
   const socketRef    = useRef(null);
   const inputRefs    = useRef({});
@@ -257,14 +259,7 @@ export default function DuelMode() {
 
   function handleMobileKey(key) {
     if (fase !== 'jugando') return;
-    let ci = -1;
-    for (let i = 0; i < values.length; i++) {
-      if (document.activeElement === inputRefs.current[`${i}`]) { ci = i; break; }
-    }
-    if (ci === -1) {
-      ci = values.findIndex(v => v === '');
-      if (ci === -1) ci = values.length - 1;
-    }
+    let ci = focusedCellRef.current;
 
     if (key === 'backspace') {
       if (values[ci] !== '') {
@@ -278,7 +273,9 @@ export default function DuelMode() {
     } else {
       setValues(prev => { const n=[...prev]; n[ci]=key; return n; });
       if (ci < values.length - 1) {
-        setTimeout(() => inputRefs.current[`${ci+1}`]?.focus(), 0);
+        const next = ci + 1;
+        focusedCellRef.current = next;
+        setTimeout(() => inputRefs.current[`${next}`]?.focus(), 0);
       }
     }
   }
@@ -536,6 +533,12 @@ export default function DuelMode() {
                 onKeyDown={e => handleKeyDown(e, ci)}
                 tabIndex={ci+1}
                 autoFocus={ci===0}
+                onFocus={() => {
+                  if (isMobile) {
+                    focusedCellRef.current = ci;
+                    setKbOpen(true);
+                  }
+                }}
               />
             </div>
           );
@@ -566,7 +569,9 @@ export default function DuelMode() {
 
       {isMobile && (
         <MobileKeyboard
+          open={kbOpen && fase === 'jugando'}
           onKey={handleMobileKey}
+          onClose={() => setKbOpen(false)}
           disabled={fase !== 'jugando'}
         />
       )}
