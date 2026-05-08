@@ -1,6 +1,5 @@
 /* DuelMode.css — solo estilos específicos del duelo.
-   El resto viene de TimedMode.css (timed-root, timed-header, timed-clock-wrap, ring-bg/fg, etc.)
-   Asegúrate de importar TimedMode.css en el layout o importarlo aquí si es necesario. */
+   El resto viene de TimedMode.css. */
 
 /* ── VS strip ────────────────────────────────────────────── */
 .duel-vs-strip {
@@ -34,7 +33,7 @@
   font-family: 'Space Mono', monospace;
 }
 
-/* ── Subheader (VS + combo bajo el timer) ────────────────── */
+/* ── Subheader ───────────────────────────────────────────── */
 .duel-subheader {
   display: flex;
   flex-direction: column;
@@ -101,7 +100,7 @@
   box-sizing: border-box;
 }
 
-/* ── Anillo countdown: clase safe aplicada directamente ──── */
+/* ── Anillo countdown ────────────────────────────────────── */
 .ring-fg.safe { stroke: var(--green, #4ade80); }
 
 /* ── VS top — primera fila en modo jugando ───────────────── */
@@ -116,7 +115,7 @@
   box-sizing: border-box;
 }
 
-/* ── Más espacio arriba en modo jugando ──────────────────── */
+/* ── Padding jugando (desktop) ───────────────────────────── */
 .duel-root--playing {
   padding-top: 160px;
 }
@@ -139,87 +138,33 @@
   z-index: 999;
   white-space: nowrap;
 }
-
 @keyframes duel-popup-in {
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* ── Combo color tiers (sincronizado con TimedMode) ──────────── */
+/* ── Combo color tiers ───────────────────────────────────── */
 .timed-combo { transition: color .25s, text-shadow .25s; }
+.timed-combo.combo-low      { color: var(--text, #e2e8f0); }
+.timed-combo.combo-warm     { color: var(--yellow, #fbbf24); text-shadow: 0 0 10px rgba(251,191,36,.35); animation: combo-bump .25s ease; }
+.timed-combo.combo-hot      { color: #f97316; text-shadow: 0 0 12px rgba(249,115,22,.5); animation: combo-bump .25s ease; }
+.timed-combo.combo-legendary{ color: var(--red, #f87171); animation: combo-bump .25s ease, combo-glow 1s ease-in-out infinite; }
+@keyframes combo-bump  { 0% { transform: scale(1.45); } 100% { transform: scale(1); } }
+@keyframes combo-glow  { 0%,100% { text-shadow: 0 0 8px rgba(248,113,113,.4); } 50% { text-shadow: 0 0 22px rgba(248,113,113,.9); } }
 
-.timed-combo.combo-low {
-  color: var(--text, #e2e8f0);
-}
-.timed-combo.combo-warm {
-  color: var(--yellow, #fbbf24);
-  text-shadow: 0 0 10px rgba(251,191,36,.35);
-  animation: combo-bump .25s ease;
-}
-.timed-combo.combo-hot {
-  color: #f97316;
-  text-shadow: 0 0 12px rgba(249,115,22,.5);
-  animation: combo-bump .25s ease;
-}
-.timed-combo.combo-legendary {
-  color: var(--red, #f87171);
-  animation: combo-bump .25s ease, combo-glow 1s ease-in-out infinite;
-}
-@keyframes combo-bump {
-  0%   { transform: scale(1.45); }
-  100% { transform: scale(1); }
-}
-@keyframes combo-glow {
-  0%,100% { text-shadow: 0 0 8px rgba(248,113,113,.4); }
-  50%     { text-shadow: 0 0 22px rgba(248,113,113,.9), 0 0 6px rgba(255,120,120,.5); }
-}
-
+/* ── MÓVIL ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Lobby: alinear contenido desde arriba en vez de centrado,
-     así cuando el teclado nativo sube la pantalla
-     el contenido sigue visible desde el top */
-  .timed-root--idle .timed-idle {
-    justify-content: flex-start;
-    padding-top: 40px;
-    min-height: auto;
-  }
- 
-  /* Modo jugando: reducir el padding-top excesivo */
-  .duel-root--playing {
-    padding-top: 70px;   /* era 160px en desktop */
-  }
-}
- 
-
-
-@media (max-width: 768px) {
-  /*
-   * LOBBY: fijar el contenedor al viewport completo.
-   * Cuando el teclado nativo aparece, el navegador
-   * reduce el "visual viewport" pero no mueve un elemento
-   * con position:fixed — el lobby siempre queda anclado
-   * en la parte superior, sin importar qué haga el teclado.
-   */
+  /* Lobby fijado al viewport: el teclado nativo no puede
+     desplazar la página. El padding y justify-content de
+     .timed-idle NO se tocan — misma distancia que TimedMode. */
   .duel-lobby {
     position: fixed;
-    inset: 0;                  /* top/right/bottom/left: 0 */
+    inset: 0;
     overflow-y: auto;
-    justify-content: flex-start;
   }
- 
-  .duel-lobby .timed-idle {
-    min-height: auto;
-    justify-content: flex-start;
-    padding-top: 120px;         /* espacio bajo el header */
-    padding-bottom: 32px;
-  }
-  .timed-idle{padding-top: 200px;}
-  /* Modo jugando: reducir el padding-top excesivo.
-     Solo afecta a .duel-root--playing, no a las idle. */
+
+  /* Padding jugando reducido en móvil */
   .duel-root--playing {
     padding-top: 70px;
   }
 }
-
-
-
