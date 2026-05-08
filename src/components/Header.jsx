@@ -169,7 +169,7 @@ export default function Header() {
           ) : (
             <Link href="/login" className="header-mobile-link" onClick={() => setMenuOpen(false)}>
               <span className="header-mobile-link-icon">👤</span>
-              <span className="header-mobile-link-label">Iniciar sesión</span>
+              <span className="header-mobile-link-label">Entrar</span>
             </Link>
           )}
         </div>
