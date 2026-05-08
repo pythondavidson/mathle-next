@@ -34,6 +34,13 @@ const MODES = [
     color: "purple",
     desc:  "Consulta los mejores jugadores del día, la semana y de todos los tiempos.",
   },
+  {
+    icon:  "❓",
+    label: "Cómo jugar",
+    route: "/como-jugar",
+    color: "blue",
+    desc:  "Aprende las reglas de cada modo, el sistema de colores y cómo se calculan las puntuaciones.",
+  },
 ];
 
 export default function LandingPage() {
@@ -43,7 +50,9 @@ export default function LandingPage() {
   const user = getUser();
 
   function handleCardClick(mode) {
-    if (mode.route === "/leaderboard") { router.push(mode.route); return; }
+    if (mode.route === "/leaderboard" || mode.route === "/como-jugar") {
+      router.push(mode.route); return;
+    }
     setSelected(mode);
   }
   function handleClose() { setSelected(null); }

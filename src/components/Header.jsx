@@ -67,6 +67,7 @@ export default function Header() {
     { to: "/contrareloj", icon: "⚡", label: "Contrareloj" },
     { to: "/duelo",       icon: "⚔️", label: "Duelo" },
     { to: "/leaderboard", icon: "🏆", label: "Ranking" },
+    { to: "/como-jugar",  icon: "❓", label: "Cómo jugar" },
   ];
 
   return (
