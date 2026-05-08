@@ -88,7 +88,7 @@ export default function LandingPage() {
         </button>
       ) : (
         <button className="landing-auth-btn" onClick={() => router.push("/login")}>
-          Iniciar sesión
+          Inisión cesiada
         </button>
       )}
 
