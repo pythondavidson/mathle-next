@@ -163,7 +163,7 @@
     position: fixed;
     inset: 0;
     overflow-y: auto;
-    padding-top: 56px;
+    padding-top: 0px;
   }
 
   /* Padding jugando reducido en móvil */
