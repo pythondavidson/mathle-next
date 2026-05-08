@@ -376,6 +376,7 @@ export default function DuelMode() {
             placeholder="CÓDIGO"
             value={codigoInput}
             onChange={e => setCodigoInput(e.target.value.toUpperCase())}
+            onFocus={() => setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)}
             maxLength={6}
           />
           <button className="timed-start-btn" style={{ padding:'14px 20px' }} onClick={unirseADuelo}>Unirse</button>

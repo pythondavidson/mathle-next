@@ -174,3 +174,25 @@
   50%     { text-shadow: 0 0 22px rgba(248,113,113,.9), 0 0 6px rgba(255,120,120,.5); }
 }
 
+@media (max-width: 768px) {
+  /* Lobby: alinear contenido desde arriba en vez de centrado,
+     así cuando el teclado nativo sube la pantalla
+     el contenido sigue visible desde el top */
+  .timed-root--idle .timed-idle {
+    justify-content: flex-start;
+    padding-top: 40px;
+    min-height: auto;
+  }
+ 
+  /* Modo jugando: reducir el padding-top excesivo */
+  .duel-root--playing {
+    padding-top: 70px;   /* era 160px en desktop */
+  }
+}
+ 
+
+
+
+
+
+
