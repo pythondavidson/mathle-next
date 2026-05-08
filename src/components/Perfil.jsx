@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getMe, deleteAccount, logout, isLoggedIn } from "../services/api";
 import "./Perfil.css";
+import "../components/Leaderboard.css"; // ajusta la ruta si es necesario
+
 
 export default function Perfil() {
   const [profile, setProfile] = useState(null);
@@ -46,7 +48,13 @@ export default function Perfil() {
     window.location.href = "/";
   }
 
-  if (loading) return <div className="perfil-root"><div className="perfil-loading">Cargando perfil...</div></div>;
+  if (loading) return (
+    <div className="perfil-root">
+      <div className="lb-spinner-wrap">
+        <div className="lb-spinner" />
+      </div>
+    </div>
+  );
   if (error)   return <div className="perfil-root"><div className="perfil-error">{error}</div></div>;
 
   const { username, email, totalPoints, streakDays, rank, duelWins = 0, last7 = [] } = profile;
