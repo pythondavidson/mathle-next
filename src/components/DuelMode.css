@@ -144,3 +144,32 @@
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* ── Combo color tiers (sincronizado con TimedMode) ──────────── */
+.timed-combo { transition: color .25s, text-shadow .25s; }
+
+.timed-combo.combo-low {
+  color: var(--text, #e2e8f0);
+}
+.timed-combo.combo-warm {
+  color: var(--yellow, #fbbf24);
+  text-shadow: 0 0 10px rgba(251,191,36,.35);
+  animation: combo-bump .25s ease;
+}
+.timed-combo.combo-hot {
+  color: #f97316;
+  text-shadow: 0 0 12px rgba(249,115,22,.5);
+  animation: combo-bump .25s ease;
+}
+.timed-combo.combo-legendary {
+  color: var(--red, #f87171);
+  animation: combo-bump .25s ease, combo-glow 1s ease-in-out infinite;
+}
+@keyframes combo-bump {
+  0%   { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+@keyframes combo-glow {
+  0%,100% { text-shadow: 0 0 8px rgba(248,113,113,.4); }
+  50%     { text-shadow: 0 0 22px rgba(248,113,113,.9), 0 0 6px rgba(255,120,120,.5); }
+}

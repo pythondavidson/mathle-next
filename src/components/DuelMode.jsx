@@ -13,24 +13,46 @@ const BONUS_TIME      = 5;
 
 // ── BANCO DE ECUACIONES ─────────────────────────────────────
 const EQUATIONS = [
-  { eq: "? + 7 = 10",             blanks: [3],     difficulty: "fácil",   points: 100 },
-  { eq: "2 × ? = 12",             blanks: [6],     difficulty: "fácil",   points: 100 },
-  { eq: "8 − ? = 2",              blanks: [6],     difficulty: "fácil",   points: 100 },
-  { eq: "2 × ? + 3 = 11",         blanks: [4],     difficulty: "fácil",   points: 100 },
-  { eq: "10 ÷ ? = 2",             blanks: [5],     difficulty: "fácil",   points: 100 },
-  { eq: "? + 2 + 4 = 9",          blanks: [3],     difficulty: "fácil",   points: 100 },
-  { eq: "3 × ? − 2 = 10",         blanks: [4],     difficulty: "fácil",   points: 100 },
-  { eq: "?^2 − ? = 7",            blanks: [3, 2],  difficulty: "medio",   points: 200 },
-  { eq: "?^2 + ? = 12",           blanks: [3, 3],  difficulty: "medio",   points: 200 },
-  { eq: "3 × ? − ? = 4",          blanks: [4, 8],  difficulty: "medio",   points: 200 },
-  { eq: "(? + 1) × ? = 15",       blanks: [4, 3],  difficulty: "medio",   points: 200 },
-  { eq: "2 × ? + 3 × ? = 17",     blanks: [4, 3],  difficulty: "medio",   points: 200 },
-  { eq: "?^2 − ?^2 = 5",          blanks: [3, 2],  difficulty: "medio",   points: 200 },
-  { eq: "?^2 + 2 × ? = 22",       blanks: [4, 3],  difficulty: "difícil", points: 350 },
-  { eq: "(? + 1) × (? − 1) = 8",  blanks: [3, 3],  difficulty: "difícil", points: 350 },
-  { eq: "? + ? = 8",              blanks: [3, 5],  difficulty: "difícil", points: 350 },
-  { eq: "?^3 − 2 × ? = 2",        blanks: [2, 3],  difficulty: "difícil", points: 350 },
-  { eq: "?^2 × 3 − ? = 23",       blanks: [3, 4],  difficulty: "difícil", points: 350 },
+  // ── FÁCIL: un hueco, operación directa ──
+  { eq: "? + 4 = 9",              blanks: [5],        difficulty: "fácil",   points: 100 },
+  { eq: "3 × ? = 15",             blanks: [5],        difficulty: "fácil",   points: 100 },
+  { eq: "? − 6 = 2",              blanks: [8],        difficulty: "fácil",   points: 100 },
+  { eq: "12 ÷ ? = 4",             blanks: [3],        difficulty: "fácil",   points: 100 },
+  { eq: "? + 8 = 13",             blanks: [5],        difficulty: "fácil",   points: 100 },
+  { eq: "5 × ? = 20",             blanks: [4],        difficulty: "fácil",   points: 100 },
+  { eq: "? − 3 = 7",              blanks: [10],       difficulty: "fácil",   points: 100 },
+  { eq: "18 ÷ ? = 3",             blanks: [6],        difficulty: "fácil",   points: 100 },
+  { eq: "? + 9 = 16",             blanks: [7],        difficulty: "fácil",   points: 100 },
+  { eq: "4 × ? = 28",             blanks: [7],        difficulty: "fácil",   points: 100 },
+  { eq: "? − 5 = 9",              blanks: [14],       difficulty: "fácil",   points: 100 },
+  { eq: "20 ÷ ? = 5",             blanks: [4],        difficulty: "fácil",   points: 100 },
+  { eq: "6 + ? = 11",             blanks: [5],        difficulty: "fácil",   points: 100 },
+  { eq: "? × 3 = 24",             blanks: [8],        difficulty: "fácil",   points: 100 },
+  { eq: "15 − ? = 6",             blanks: [9],        difficulty: "fácil",   points: 100 },
+  // ── MEDIO: dos huecos, requiere algo de lógica ──
+  { eq: "? + ? = 11",             blanks: [5, 6],  difficulty: "medio",   points: 200 },
+  { eq: "? × ? = 12",             blanks: [3, 4],  difficulty: "medio",   points: 200 },
+  { eq: "? + ? = 15",             blanks: [7, 8],  difficulty: "medio",   points: 200 },
+  { eq: "? × ? = 18",             blanks: [3, 6],  difficulty: "medio",   points: 200 },
+  { eq: "2 × ? + ? = 11",         blanks: [4, 3],  difficulty: "medio",   points: 200 },
+  { eq: "? × ? = 20",             blanks: [4, 5],  difficulty: "medio",   points: 200 },
+  { eq: "3 × ? − ? = 8",          blanks: [4, 4],  difficulty: "medio",   points: 200 },
+  { eq: "? + 3 × ? = 13",         blanks: [4, 3],  difficulty: "medio",   points: 200 },
+  { eq: "? × ? = 16",             blanks: [4, 4],  difficulty: "medio",   points: 200 },
+  { eq: "2 × ? − ? = 5",          blanks: [6, 7],  difficulty: "medio",   points: 200 },
+  { eq: "? + ? = 9",              blanks: [4, 5],  difficulty: "medio",   points: 200 },
+  { eq: "? × ? = 24",             blanks: [4, 6],  difficulty: "medio",   points: 200 },
+  // ── DIFÍCIL: potencias, paréntesis, razonamiento no trivial ──
+  { eq: "?^2 + ? = 12",           blanks: [3, 3],  difficulty: "difícil", points: 350 },
+  { eq: "?^2 − ? = 6",            blanks: [3, 3],  difficulty: "difícil", points: 350 },
+  { eq: "(? + 2) × ? = 15",       blanks: [3, 3],  difficulty: "difícil", points: 350 },
+  { eq: "?^2 − ?^2 = 5",          blanks: [3, 2],  difficulty: "difícil", points: 350 },
+  { eq: "?^2 + 2 × ? = 8",        blanks: [2, 2],  difficulty: "difícil", points: 350 },
+  { eq: "(? − 1) × (? + 1) = 8",  blanks: [3, 3],  difficulty: "difícil", points: 350 },
+  { eq: "?^2 × 2 = ? + 15",       blanks: [3, 3],  difficulty: "difícil", points: 350 },
+  { eq: "?^3 = ? + 6",            blanks: [2, 2],  difficulty: "difícil", points: 350 },
+  { eq: "(? + ?) × 2 = 14",       blanks: [3, 4],  difficulty: "difícil", points: 350 },
+  { eq: "?^2 − 2 × ? = 3",        blanks: [3, 3],  difficulty: "difícil", points: 350 },
 ];
 
 // ── UTILIDADES ──────────────────────────────────────────────
@@ -125,6 +147,7 @@ export default function DuelMode() {
   const [parsed, setParsed]       = useState([]);
   const [values, setValues]       = useState([]);
   const [rowAnim, setRowAnim]     = useState('');
+  const [rootFlash, setRootFlash] = useState('');
   const [usedIds, setUsedIds]     = useState(new Set());
 
   const socketRef    = useRef(null);
@@ -199,7 +222,7 @@ export default function DuelMode() {
       setJugadores(players);
       scoreRef.current = 0; solvedRef.current = 0; comboRef.current = 0;
       setScore(0); setSolved(0); setSkipped(0); setCombo(0);
-      setLastPoints(null); setBonusAnim(null); setRowAnim('');
+      setLastPoints(null); setBonusAnim(null); setRowAnim(''); setRootFlash('');
       const fresh = new Set();
       usedIdsRef.current = fresh;
       const result = getRandomEq(fresh);
@@ -278,18 +301,22 @@ export default function DuelMode() {
     if (fase !== 'jugando') return;
     if (values.some(v => v===''||v==='-')) return;
     if (!equationIsValid(parsed, values)) {
-      showToast('Ecuación incorrecta matemáticamente', true);
+      // Error: pierde combo, flash rojo en toda la interfaz, pasa a la siguiente
+      comboRef.current = 0;
+      setCombo(0);
+      setRootFlash('flash-error');
       setRowAnim('shake');
-      setTimeout(() => setRowAnim(''), 500);
+      setTimeout(() => { setRootFlash(''); setRowAnim(''); }, 700);
+      setTimeout(() => loadNextEq(usedIdsRef.current), 700);
       return;
     }
-    // ── Calcular puntos igual que TimedMode ──
+    // Combo logarítmico: ×1.0 → ×1.42 → ×1.97 → ×2.38...
     const newCombo   = comboRef.current + 1;
     comboRef.current = newCombo;
-    const comboMult  = Math.min(newCombo, 5);
+    const comboMult  = 1 + 0.6 * Math.log(newCombo);
     const basePoints = eq.points;
     const timeBonus  = Math.floor(timeRef.current * 2);
-    const totalPoints = (basePoints + timeBonus) * comboMult;
+    const totalPoints = Math.round((basePoints + timeBonus) * comboMult);
 
     setCombo(newCombo);
     scoreRef.current += totalPoints;
@@ -304,7 +331,7 @@ export default function DuelMode() {
       setTimeout(() => setBonusAnim(null), 1400);
     }
 
-    setLastPoints({ pts: totalPoints, combo: comboMult, key: Date.now() });
+    setLastPoints({ pts: totalPoints, combo: parseFloat(comboMult.toFixed(2)), key: Date.now() });
     setTimeout(() => setLastPoints(null), 1200);
 
     loadNextEq(usedIdsRef.current);
@@ -317,7 +344,8 @@ export default function DuelMode() {
     setSkipped(s => s+1);
     timeRef.current = Math.max(timeRef.current - 3, 1);
     setTimeLeft(timeRef.current);
-    showToast('−3s', true);
+    setRootFlash('flash-skip');
+    setTimeout(() => setRootFlash(''), 550);
     loadNextEq(usedIdsRef.current);
   }
 
@@ -332,7 +360,7 @@ export default function DuelMode() {
     clearInterval(countdownRef.current); clearInterval(gameTimerRef.current);
     setFase('lobby'); setCodigo(''); setCodigoInput(''); codigoRef.current = '';
     setJugadores([]); setResultado(null); setError('');
-    setEq(null); setParsed([]); setValues([]);
+    setEq(null); setParsed([]); setValues([]); setRootFlash('');
     setScore(0); setSolved(0); setSkipped(0); setCombo(0);
     scoreRef.current=0; solvedRef.current=0; comboRef.current=0;
     timeRef.current=GAME_DURATION; setTimeLeft(GAME_DURATION);
@@ -445,7 +473,7 @@ export default function DuelMode() {
 
   // ── JUGANDO ──────────────────────────────────────────────
   if (fase === 'jugando') return (
-    <div className="timed-root duel-root--playing">
+    <div className={`timed-root duel-root--playing${rootFlash ? ` ${rootFlash}` : ""}`}>
       <div className={`timed-toast${toast.show?' show':''}${toast.error?' error':''}`}>{toast.msg}</div>
 
       {/* VS strip — primera fila */}
@@ -476,8 +504,13 @@ export default function DuelMode() {
 
         <div className="timed-combo-wrap">
           <span className="timed-combo-label">Combo</span>
-          <span className={`timed-combo${combo >= 3 ? ' hot' : ''}`}>
-            {combo > 1 ? `×${Math.min(combo,5)}` : '—'}
+          <span className={`timed-combo ${
+            combo >= 8 ? 'combo-legendary' :
+            combo >= 5 ? 'combo-hot' :
+            combo >= 3 ? 'combo-warm' :
+            combo >= 2 ? 'combo-low' : ''
+          }`}>
+            {combo > 1 ? `×${(1 + 0.6 * Math.log(combo)).toFixed(2)}` : '—'}
           </span>
         </div>
       </div>
