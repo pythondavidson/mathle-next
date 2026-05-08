@@ -1,10 +1,10 @@
 'use client';
+import EQUATIONS from '../data/equations';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { isLoggedIn, getUser } from '../services/api';
 import './TimedMode.css';
 import './DuelMode.css';
-
 
 const API_URL        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const COUNTDOWN_TOTAL = 5;
@@ -12,48 +12,6 @@ const GAME_DURATION   = 60;
 const BONUS_TIME      = 5;
 
 // ── BANCO DE ECUACIONES ─────────────────────────────────────
-const EQUATIONS = [
-  // ── FÁCIL: un hueco, operación directa ──
-  { eq: "? + 4 = 9",              blanks: [5],        difficulty: "fácil",   points: 100 },
-  { eq: "3 × ? = 15",             blanks: [5],        difficulty: "fácil",   points: 100 },
-  { eq: "? − 6 = 2",              blanks: [8],        difficulty: "fácil",   points: 100 },
-  { eq: "12 ÷ ? = 4",             blanks: [3],        difficulty: "fácil",   points: 100 },
-  { eq: "? + 8 = 13",             blanks: [5],        difficulty: "fácil",   points: 100 },
-  { eq: "5 × ? = 20",             blanks: [4],        difficulty: "fácil",   points: 100 },
-  { eq: "? − 3 = 7",              blanks: [10],       difficulty: "fácil",   points: 100 },
-  { eq: "18 ÷ ? = 3",             blanks: [6],        difficulty: "fácil",   points: 100 },
-  { eq: "? + 9 = 16",             blanks: [7],        difficulty: "fácil",   points: 100 },
-  { eq: "4 × ? = 28",             blanks: [7],        difficulty: "fácil",   points: 100 },
-  { eq: "? − 5 = 9",              blanks: [14],       difficulty: "fácil",   points: 100 },
-  { eq: "20 ÷ ? = 5",             blanks: [4],        difficulty: "fácil",   points: 100 },
-  { eq: "6 + ? = 11",             blanks: [5],        difficulty: "fácil",   points: 100 },
-  { eq: "? × 3 = 24",             blanks: [8],        difficulty: "fácil",   points: 100 },
-  { eq: "15 − ? = 6",             blanks: [9],        difficulty: "fácil",   points: 100 },
-  // ── MEDIO: dos huecos, requiere algo de lógica ──
-  { eq: "? + ? = 11",             blanks: [5, 6],  difficulty: "medio",   points: 200 },
-  { eq: "? × ? = 12",             blanks: [3, 4],  difficulty: "medio",   points: 200 },
-  { eq: "? + ? = 15",             blanks: [7, 8],  difficulty: "medio",   points: 200 },
-  { eq: "? × ? = 18",             blanks: [3, 6],  difficulty: "medio",   points: 200 },
-  { eq: "2 × ? + ? = 11",         blanks: [4, 3],  difficulty: "medio",   points: 200 },
-  { eq: "? × ? = 20",             blanks: [4, 5],  difficulty: "medio",   points: 200 },
-  { eq: "3 × ? − ? = 8",          blanks: [4, 4],  difficulty: "medio",   points: 200 },
-  { eq: "? + 3 × ? = 13",         blanks: [4, 3],  difficulty: "medio",   points: 200 },
-  { eq: "? × ? = 16",             blanks: [4, 4],  difficulty: "medio",   points: 200 },
-  { eq: "2 × ? − ? = 5",          blanks: [6, 7],  difficulty: "medio",   points: 200 },
-  { eq: "? + ? = 9",              blanks: [4, 5],  difficulty: "medio",   points: 200 },
-  { eq: "? × ? = 24",             blanks: [4, 6],  difficulty: "medio",   points: 200 },
-  // ── DIFÍCIL: potencias, paréntesis, razonamiento no trivial ──
-  { eq: "?^2 + ? = 12",           blanks: [3, 3],  difficulty: "difícil", points: 350 },
-  { eq: "?^2 − ? = 6",            blanks: [3, 3],  difficulty: "difícil", points: 350 },
-  { eq: "(? + 2) × ? = 15",       blanks: [3, 3],  difficulty: "difícil", points: 350 },
-  { eq: "?^2 − ?^2 = 5",          blanks: [3, 2],  difficulty: "difícil", points: 350 },
-  { eq: "?^2 + 2 × ? = 8",        blanks: [2, 2],  difficulty: "difícil", points: 350 },
-  { eq: "(? − 1) × (? + 1) = 8",  blanks: [3, 3],  difficulty: "difícil", points: 350 },
-  { eq: "?^2 × 2 = ? + 15",       blanks: [3, 3],  difficulty: "difícil", points: 350 },
-  { eq: "?^3 = ? + 6",            blanks: [2, 2],  difficulty: "difícil", points: 350 },
-  { eq: "(? + ?) × 2 = 14",       blanks: [3, 4],  difficulty: "difícil", points: 350 },
-  { eq: "?^2 − 2 × ? = 3",        blanks: [3, 3],  difficulty: "difícil", points: 350 },
-];
 
 // ── UTILIDADES ──────────────────────────────────────────────
 function parseEquation(eqStr) {

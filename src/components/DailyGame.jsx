@@ -1,40 +1,10 @@
 'use client';
+import EQUATIONS from '../data/equations';
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./DailyGame.css";
 import { saveDailyScore, isLoggedIn } from "../services/api";
-
-const EQUATIONS = [
-  // ── FÁCIL ──
-  { eq: "? + 7 = 10",        blanks: [3],         difficulty: "fácil" },
-  { eq: "2 × ? = 12",        blanks: [6],         difficulty: "fácil" },
-  { eq: "8 − ? = 2",         blanks: [6],         difficulty: "fácil" },
-  { eq: "2 × ? + 3 = 11",    blanks: [4],         difficulty: "fácil" },
-  { eq: "10 ÷ ? = 2",        blanks: [5],         difficulty: "fácil" },
-  { eq: "? + 2 + 4 = 9",     blanks: [3],         difficulty: "fácil" },
-  { eq: "3 × ? − 2 = 10",    blanks: [4],         difficulty: "fácil" },
-  // ── MEDIO ──
-  { eq: "?^2 − ? = 7",           blanks: [3, 2],  difficulty: "medio" },
-  { eq: "?^2 + ? = 12",          blanks: [3, 3],  difficulty: "medio" },
-  { eq: "3 × ? − ? = 4",         blanks: [4, 8],  difficulty: "medio" },
-  { eq: "(? + 1) × ? = 15",      blanks: [4, 3],  difficulty: "medio" },
-  { eq: "2 × ? + 3 × ? = 17",    blanks: [4, 3],  difficulty: "medio" },
-  { eq: "?^2 − ?^2 = 5",         blanks: [3, 2],  difficulty: "medio" },
-  // ── DIFÍCIL ──
-  { eq: "?^2 + 2 × ? = 22",          blanks: [4, 3],  difficulty: "difícil" },
-  { eq: "(? + 1) × (? − 1) = 8",     blanks: [3, 3],  difficulty: "difícil" },
-  { eq: "? + ? = 8",                  blanks: [3, 5],  difficulty: "difícil" },
-  { eq: "?^3 − 2 × ? = 2",           blanks: [2, 3],  difficulty: "difícil" },
-  { eq: "?^2 × 3 − ? = 23",          blanks: [3, 4],  difficulty: "difícil" },
-  // ── AVANZADO ──
-  { eq: "? × ? + ? = ? × ? − ?",      blanks: [3,3,1,2,5,0], difficulty: "avanzado" },
-  { eq: "? + ? × ? = ? × ? − ?",      blanks: [2,3,4,2,7,0], difficulty: "avanzado" },
-  { eq: "?^2 + ? + ? = ? × ? − ?",    blanks: [2,2,3,3,3,0], difficulty: "avanzado" },
-  { eq: "? × ? × ? = ? + ? + ?",      blanks: [2,2,3,4,4,4], difficulty: "avanzado" },
-  { eq: "? + ? × ? + ? = ? × ?",      blanks: [1,2,3,2,3,3], difficulty: "avanzado" },
-  { eq: "?^2 + ? × ? = ? + ? + ?",    blanks: [3,1,2,7,3,1], difficulty: "avanzado" },
-];
 
 const DAILY_EQUATIONS = EQUATIONS.filter(e => e.difficulty === "avanzado" && e.blanks.length === 6);
 
