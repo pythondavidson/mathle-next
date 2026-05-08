@@ -161,6 +161,7 @@ export default function TimedMode() {
   const [bestScore, setBestScore] = useState(loadBestScore());
   const [usedIds, setUsedIds] = useState(new Set());
   const [rowAnim, setRowAnim] = useState("");
+  const [rootFlash, setRootFlash] = useState("");
   const [isNewBest, setIsNewBest] = useState(false);
 
   const timerRef = useRef(null);
@@ -209,6 +210,7 @@ export default function TimedMode() {
     setLastPoints(null);
     setBonusAnim(null);
     setRowAnim("");
+    setRootFlash("");
     setIsNewBest(false);
     setPhase("playing");
   }
@@ -295,8 +297,9 @@ export default function TimedMode() {
     if (!equationIsValid()) {
       // Error matemático: pierde combo, animación roja, pasa a la siguiente
       setCombo(0);
-      setRowAnim("flash-error");
-      setTimeout(() => setRowAnim(""), 700);
+      setRootFlash("flash-error");
+      setRowAnim("shake");
+      setTimeout(() => { setRootFlash(""); setRowAnim(""); }, 700);
       setTimeout(() => loadNextEq(usedIds), 700);
       return;
     }
@@ -331,9 +334,9 @@ export default function TimedMode() {
     setCombo(0);
     setSkipped(prev => prev + 1);
     setTimeLeft(prev => Math.max(prev - 3, 1));
-    setRowAnim("flash-skip");
-    setTimeout(() => setRowAnim(""), 500);
-    setTimeout(() => loadNextEq(usedIds), 500);
+    setRootFlash("flash-skip");
+    setTimeout(() => setRootFlash(""), 550);
+    loadNextEq(usedIds);
   }
 
   const timerColor = timeLeft <= 10 ? "danger" : timeLeft <= 20 ? "warning" : "safe";
@@ -398,7 +401,7 @@ export default function TimedMode() {
 
   // ── PLAYING ────────────────────────────────────────────────────
   return (
-    <div className="timed-root">
+    <div className={`timed-root${rootFlash ? ` ${rootFlash}` : ""}`}>
       <div className={`timed-toast${toast.show ? " show" : ""}${toast.error ? " error" : ""}`}>
         {toast.msg}
       </div>

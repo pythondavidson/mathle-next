@@ -502,31 +502,26 @@
   75%     { transform: translateX(5px); }
 }
 
-/* Flash rojo: ecuación matemáticamente incorrecta */
-.timed-row.flash-error {
-  animation: flash-error .7s ease forwards;
-  border-radius: 8px;
+/* Flash rojo: ecuación matemáticamente incorrecta — tiñe toda la interfaz */
+.timed-root.flash-error {
+  animation: flash-error .65s ease forwards;
 }
 @keyframes flash-error {
-  0%   { background: transparent;                    transform: translateX(0); }
-  10%  {                                              transform: translateX(-6px); }
-  20%  { background: rgba(248,113,113,.18);           transform: translateX(6px); }
-  40%  { background: rgba(248,113,113,.26);           transform: translateX(-4px); }
-  60%  { background: rgba(248,113,113,.16);           transform: translateX(2px); }
-  80%  { background: rgba(248,113,113,.06);           transform: translateX(0); }
-  100% { background: transparent; }
+  0%   { box-shadow: inset 0 0 0px   0px rgba(248,113,113,0);   background: var(--bg); }
+  25%  { box-shadow: inset 0 0 120px 40px rgba(248,113,113,.22); background: #1a0f0f; }
+  55%  { box-shadow: inset 0 0 80px  20px rgba(248,113,113,.12); background: #140d0d; }
+  100% { box-shadow: inset 0 0 0px   0px rgba(248,113,113,0);   background: var(--bg); }
 }
 
-/* Flash naranja: saltar ecuación */
-.timed-row.flash-skip {
-  animation: flash-skip .5s ease forwards;
-  border-radius: 8px;
+/* Flash naranja: saltar ecuación — tiñe toda la interfaz */
+.timed-root.flash-skip {
+  animation: flash-skip .55s ease forwards;
 }
 @keyframes flash-skip {
-  0%   { background: transparent;              opacity: 1; }
-  25%  { background: rgba(249,115,22,.20);     opacity: .85; }
-  60%  { background: rgba(249,115,22,.10);     opacity: .5; }
-  100% { background: transparent;              opacity: 0; }
+  0%   { box-shadow: inset 0 0 0px   0px rgba(249,115,22,0);   background: var(--bg); }
+  25%  { box-shadow: inset 0 0 120px 40px rgba(249,115,22,.18); background: #1a1108; }
+  55%  { box-shadow: inset 0 0 80px  20px rgba(249,115,22,.09); background: #150f06; }
+  100% { box-shadow: inset 0 0 0px   0px rgba(249,115,22,0);   background: var(--bg); }
 }
 
 /* ── FRAG & CELL ───────────────────────────────────────── */
