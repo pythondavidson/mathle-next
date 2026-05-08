@@ -217,7 +217,7 @@
   /* Modo jugando: reducir el padding-top excesivo.
      Solo afecta a .duel-root--playing, no a las idle. */
   .duel-root--playing {
-    padding-top: 70px;
+    padding-top: 120px;
   }
 }
 
