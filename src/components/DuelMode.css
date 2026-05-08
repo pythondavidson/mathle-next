@@ -154,13 +154,16 @@
 
 /* ── MÓVIL ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Lobby fijado al viewport: el teclado nativo no puede
-     desplazar la página. El padding y justify-content de
-     .timed-idle NO se tocan — misma distancia que TimedMode. */
+  /* position:fixed ancla el lobby al viewport, pero entonces
+     el timed-idle se centra incluyendo los 56px del header.
+     Con padding-top: 56px en el contenedor, el área disponible
+     para centrar empieza justo debajo del header — igual que
+     las demás pantallas idle. */
   .duel-lobby {
     position: fixed;
     inset: 0;
     overflow-y: auto;
+    padding-top: 56px;
   }
 
   /* Padding jugando reducido en móvil */
