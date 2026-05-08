@@ -210,14 +210,14 @@
   .duel-lobby .timed-idle {
     min-height: auto;
     justify-content: flex-start;
-    padding-top: 48px;         /* espacio bajo el header */
+    padding-top: 200px;         /* espacio bajo el header */
     padding-bottom: 32px;
   }
  
   /* Modo jugando: reducir el padding-top excesivo.
      Solo afecta a .duel-root--playing, no a las idle. */
   .duel-root--playing {
-    padding-top: 120px;
+    padding-top: 70px;
   }
 }
 
