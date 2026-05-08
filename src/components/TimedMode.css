@@ -647,7 +647,7 @@
 
   .timed-bar-wrap {
     position: fixed;
-    top: 149px;
+    top: 148px;
     left: 0;
     right: 0;
     max-width: 100%;
@@ -656,6 +656,6 @@
   }
 
   .timed-root {
-    padding-top: 175px;
+    padding-top: 136px;
   }
 }
