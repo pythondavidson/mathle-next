@@ -192,7 +192,34 @@
  
 
 
-
+@media (max-width: 768px) {
+  /*
+   * LOBBY: fijar el contenedor al viewport completo.
+   * Cuando el teclado nativo aparece, el navegador
+   * reduce el "visual viewport" pero no mueve un elemento
+   * con position:fixed — el lobby siempre queda anclado
+   * en la parte superior, sin importar qué haga el teclado.
+   */
+  .duel-lobby {
+    position: fixed;
+    inset: 0;                  /* top/right/bottom/left: 0 */
+    overflow-y: auto;
+    justify-content: flex-start;
+  }
+ 
+  .duel-lobby .timed-idle {
+    min-height: auto;
+    justify-content: flex-start;
+    padding-top: 48px;         /* espacio bajo el header */
+    padding-bottom: 32px;
+  }
+ 
+  /* Modo jugando: reducir el padding-top excesivo.
+     Solo afecta a .duel-root--playing, no a las idle. */
+  .duel-root--playing {
+    padding-top: 70px;
+  }
+}
 
 
 
