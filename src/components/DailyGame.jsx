@@ -323,7 +323,14 @@ export default function DailyGame() {
     setStats(newStats);
 
     const finalSecs = finalSecondsRef.current;
-    const points = didWin ? Math.max(100, 600 - finalAttempts * 80) : 50;
+    // Score por tiempo: 3000 pts si ≤30s, 1000 pts si ≥120s, lineal entre medias
+    const timeScore = finalSecs <= 30
+      ? 3000
+      : finalSecs >= 120
+        ? 1000
+        : 3000 - ((finalSecs - 30) / 90) * 2000;
+    // Multiplicador por intentos: 1/intentos (1º intento = ×1, 6º intento = ×1/6)
+    const points = didWin ? Math.round(timeScore / finalAttempts) : 0;
     setResult({ won: didWin, attempts: finalAttempts, seconds: finalSecs, points });
 
     setTimeout(() => setShowModal(true), 900);
