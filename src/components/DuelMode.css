@@ -117,7 +117,7 @@
 
 /* ── Padding jugando (desktop) ───────────────────────────── */
 .duel-root--playing {
-  padding-top: 0px;
+  padding-top: 160px;
 }
 
 /* ── Popup código copiado ────────────────────────────────── */
@@ -154,16 +154,19 @@
 
 /* ── MÓVIL ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* position:fixed ancla el lobby al viewport, pero entonces
-     el timed-idle se centra incluyendo los 56px del header.
-     Con padding-top: 56px en el contenedor, el área disponible
-     para centrar empieza justo debajo del header — igual que
-     las demás pantallas idle. */
+  /* El lobby carga centrado verticalmente porque timed-idle
+     tiene justify-content:center + min-height:100vh.
+     En móvil lo anclamos arriba para que siempre sea visible
+     desde el principio. */
   .duel-lobby {
     position: fixed;
     inset: 0;
     overflow-y: auto;
-    padding-top: 0px;
+  }
+
+  .duel-lobby .timed-idle {
+    justify-content: flex-start;
+    padding-top: 60px;   /* espacio visual bajo el header (56px) */
   }
 
   /* Padding jugando reducido en móvil */
