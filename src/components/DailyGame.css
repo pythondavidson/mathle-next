@@ -515,6 +515,21 @@
   - 6 celdas × cell + fragments ~120px = debe caber en viewport
   - Con clamp: mínimo 32px, preferido 10vw, máximo 48px
 */
+/* ── DESKTOP FIX — el grid nunca se trunca ─────────────── */
+@media (min-width: 601px) {
+  .grid-wrapper {
+    max-width: 680px;
+    overflow-x: visible;
+  }
+
+  .game-header,
+  .divider,
+  .actions {
+     max-width: 560px;   /* ~ancho real de la fila: 6×48px + operadores */
+     width: fit-content;
+     min-width: 440px;
+  }
+}
 
 @media (max-width: 600px) {
   :root { --cell: clamp(32px, 10vw, 44px); }
@@ -553,53 +568,55 @@
    GAME-BODY: grid + botón comparten el mismo ancho natural
 ═══════════════════════════════════════════════════════════ */
 
-/* game-body se adapta al contenido (width intrínseco del grid) */
+/* Móvil: ocupa todo el ancho disponible */
 .game-body {
   display: flex;
   flex-direction: column;
-  align-items: center;        /* centra hijos horizontalmente */
+  align-items: stretch;
   width: 100%;
   padding: 0 16px;
   box-sizing: border-box;
 }
 
-/* El grid no fuerza ningún ancho; crece con su contenido natural */
 .game-body .grid-wrapper {
   max-width: none;
-  width: auto;
+  width: 100%;
   padding: 0;
   overflow-x: visible;
 }
 
-/* Las filas se centran y usan su tamaño natural (no stretch) */
 .game-body .grid-row {
   justify-content: center;
-  width: auto;
 }
 
-/* El botón mide lo mismo que el grid: hereda el ancho del grid-wrapper */
 .game-body .actions {
   margin-top: 14px;
   padding: 0;
-  /* Misma anchura que las filas del grid encima */
   width: 100%;
   max-width: none;
-  align-self: stretch;
 }
 
-/* En desktop el botón no se extiende más allá del grid */
+/* Desktop: game-body se encoge al tamaño natural del grid
+   y el botón hereda ese mismo ancho */
 @media (min-width: 601px) {
   .game-body {
-    align-items: center;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: auto;
+    padding: 0;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
   }
-  /* El wrapper toma el ancho natural de sus filas */
+
   .game-body .grid-wrapper {
-    width: fit-content;
+    width: auto;
+    overflow-x: visible;
   }
-  /* El botón iguala ese ancho */
+
   .game-body .actions {
     width: 100%;
-    align-self: stretch;
   }
 }
 
