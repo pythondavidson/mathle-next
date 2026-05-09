@@ -599,3 +599,28 @@
 .game-body .btn-restart {
   flex: 1;
 }
+
+.daily-modal-streak-bonus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(201,168,76,.07);
+  border: 1px solid rgba(201,168,76,.2);
+  border-radius: 10px;
+  padding: 10px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.streak-bonus-fire { font-size: 20px; line-height: 1; }
+.streak-bonus-text {
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+}
+.streak-bonus-text strong { font-weight: 700; }
+.streak-bonus-breakdown {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}

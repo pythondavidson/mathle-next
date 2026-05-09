@@ -346,8 +346,15 @@ export default function DailyGame() {
         ? 1000
         : 5000 - ((finalSecs - 30) / 90) * 4000;
     const attemptFactor = 1 - ((finalAttempts - 1) / 5) * 0.5;
-    const points = didWin ? Math.round(timeScore * attemptFactor) : 0;
-    setResult({ won: didWin, attempts: finalAttempts, seconds: finalSecs, points });
+    const basePoints = didWin ? Math.round(timeScore * attemptFactor) : 0;
+
+    // Streak bonus: logarítmico, significativo pero no dominante
+    // racha=0 → ×1.00 | racha=1 → ×1.50 | racha=7 → ×2.00 | racha=31 → ×2.50
+    const currentStreak = newStats.streak; // ya actualizado arriba
+    const streakFactor = didWin ? 1 + 0.5 * Math.log2(currentStreak + 1) : 1;
+    const points = didWin ? Math.round(basePoints * streakFactor) : 0;
+
+    setResult({ won: didWin, attempts: finalAttempts, seconds: finalSecs, points, basePoints, streakFactor, streak: currentStreak });
 
     setTimeout(() => setShowModal(true), 900);
 
@@ -420,6 +427,18 @@ export default function DailyGame() {
                 <span className="daily-modal-stat-lbl">puntos</span>
               </div>
             </div>
+
+            {result.won && result.streak > 0 && (
+              <div className="daily-modal-streak-bonus">
+                <span className="streak-bonus-fire">🔥</span>
+                <span className="streak-bonus-text">
+                  Racha ×{result.streak} — bonus <strong>×{result.streakFactor.toFixed(2)}</strong>
+                </span>
+                <span className="streak-bonus-breakdown">
+                  ({result.basePoints} pts base → {result.points} pts)
+                </span>
+              </div>
+            )}
 
             {!result.won && (
               <div className="daily-modal-answer">
