@@ -515,21 +515,6 @@
   - 6 celdas × cell + fragments ~120px = debe caber en viewport
   - Con clamp: mínimo 32px, preferido 10vw, máximo 48px
 */
-/* ── DESKTOP FIX — el grid nunca se trunca ─────────────── */
-@media (min-width: 601px) {
-  .grid-wrapper {
-    max-width: 680px;
-    overflow-x: visible;
-  }
-
-  .game-header,
-  .divider,
-  .actions {
-     max-width: 560px;   /* ~ancho real de la fila: 6×48px + operadores */
-     width: fit-content;
-     min-width: 440px;
-  }
-}
 
 @media (max-width: 600px) {
   :root { --cell: clamp(32px, 10vw, 44px); }
@@ -565,55 +550,57 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PARCHE DailyGame.css
-   Añadir estos bloques al final del archivo.
-   
-   Objetivo: las filas de intentos tienen el mismo ancho
-   que el botón Verificar.
+   GAME-BODY: grid + botón comparten el mismo ancho natural
 ═══════════════════════════════════════════════════════════ */
 
-/* Contenedor que agrupa grid + botones, fija el ancho máximo */
+/* game-body se adapta al contenido (width intrínseco del grid) */
 .game-body {
   display: flex;
   flex-direction: column;
-  align-items: stretch;   /* hijos se estiran al 100% del ancho */
+  align-items: center;        /* centra hijos horizontalmente */
   width: 100%;
-  max-width: 460px;       /* ancho único para grid Y botón */
   padding: 0 16px;
   box-sizing: border-box;
-  margin: 0 auto;
 }
 
-/* El grid ya no necesita su propio max-width ni padding lateral */
+/* El grid no fuerza ningún ancho; crece con su contenido natural */
 .game-body .grid-wrapper {
   max-width: none;
+  width: auto;
   padding: 0;
-  width: 100%;
+  overflow-x: visible;
 }
 
-/* Las filas se estiran al 100% del contenedor */
+/* Las filas se centran y usan su tamaño natural (no stretch) */
 .game-body .grid-row {
-  justify-content: space-between;
-  width: 100%;
+  justify-content: center;
+  width: auto;
 }
 
-/* Los frags se distribuyen con el espacio sobrante */
-.game-body .eq-frag {
-  flex: 0 0 auto;
-}
-
-/* El botón ocupa todo el ancho disponible */
+/* El botón mide lo mismo que el grid: hereda el ancho del grid-wrapper */
 .game-body .actions {
   margin-top: 14px;
   padding: 0;
+  /* Misma anchura que las filas del grid encima */
   width: 100%;
   max-width: none;
+  align-self: stretch;
 }
 
-.game-body .btn-verify,
-.game-body .btn-share,
-.game-body .btn-restart {
-  flex: 1;
+/* En desktop el botón no se extiende más allá del grid */
+@media (min-width: 601px) {
+  .game-body {
+    align-items: center;
+  }
+  /* El wrapper toma el ancho natural de sus filas */
+  .game-body .grid-wrapper {
+    width: fit-content;
+  }
+  /* El botón iguala ese ancho */
+  .game-body .actions {
+    width: 100%;
+    align-self: stretch;
+  }
 }
 
 .daily-modal-streak-bonus {
