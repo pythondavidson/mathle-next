@@ -373,9 +373,9 @@ export default function DailyGame() {
     const basePoints = didWin ? Math.round(timeScore * attemptFactor) : 0;
 
     // Streak bonus: logarítmico, significativo pero no dominante
-    // racha=0 → ×1.00 | racha=1 → ×1.50 | racha=7 → ×2.00 | racha=31 → ×2.50
+    // racha=1 → ×1.00 (sin bonus) | racha=2 → ×1.50 | racha=8 → ×2.00 | racha=32 → ×2.50
     const currentStreak = newStats.streak; // ya actualizado arriba
-    const streakFactor = didWin ? 1 + 0.5 * Math.log2(currentStreak + 1) : 1;
+    const streakFactor = didWin && currentStreak > 1 ? 1 + 0.5 * Math.log2(currentStreak) : 1;
     const points = didWin ? Math.round(basePoints * streakFactor) : 0;
 
     setResult({ won: didWin, attempts: finalAttempts, seconds: finalSecs, points, basePoints, streakFactor, streak: currentStreak });
@@ -474,7 +474,7 @@ export default function DailyGame() {
               </div>
             </div>
 
-            {result.won && result.streak > 0 && (
+            {result.won && result.streak > 1 && (
               <div className="daily-modal-streak-bonus">
                 <span className="streak-bonus-fire">🔥</span>
                 <span className="streak-bonus-text">
