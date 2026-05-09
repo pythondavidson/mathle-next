@@ -523,9 +523,15 @@
   }
 
   .game-header,
-  .divider,
-  .actions {
+  .divider {
     max-width: 680px;
+  }
+
+  /* El botón sigue el ancho natural del grid, no un max-width propio */
+  .actions {
+    max-width: 560px;   /* ~ancho real de la fila: 6×48px + operadores */
+    width: fit-content;
+    min-width: 440px;
   }
 }
 
