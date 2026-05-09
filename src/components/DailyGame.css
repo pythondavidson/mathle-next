@@ -523,12 +523,14 @@
   }
 
   .game-header,
-  .divider,
-  .actions {
-     max-width: 560px;   /* ~ancho real de la fila: 6×48px + operadores */
+  .divider {
+     max-width: 560px;
      width: fit-content;
      min-width: 440px;
   }
+
+  /* .actions queda fuera: lo gestiona .game-body para que
+     grid y botón tengan exactamente el mismo ancho */
 }
 
 @media (max-width: 600px) {
@@ -586,7 +588,8 @@
 
 /* El grid ya no necesita su propio max-width ni padding lateral */
 .game-body .grid-wrapper {
-  max-width: none;
+  max-width: none !important;
+  overflow-x: hidden;
   padding: 0;
   width: 100%;
 }
