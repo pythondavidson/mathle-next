@@ -1,8 +1,7 @@
 'use client';
 import EQUATIONS from '../data/equations';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { isLoggedIn } from '../services/api';
-import { saveTimedScore } from '../services/api';
+import { isLoggedIn, saveTimedScore, savePendingScore } from '../services/api';
 import './TimedMode.css';
 import MobileKeyboard from './MobileKeyboard';
 
@@ -173,6 +172,9 @@ export default function TimedMode() {
       setIsNewBest(finalScore > 0 && finalScore >= best);
       if (isLoggedIn() && finalScore > 0) {
         saveTimedScore(finalScore).catch(err => console.log('Error guardando timed score:', err));
+      } else if (finalScore > 0) {
+        // Guardar pendiente para cuando el usuario se registre o inicie sesión
+        savePendingScore({ type: 'timed', points: finalScore });
       }
     }
   }, [phase]);

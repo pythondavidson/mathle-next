@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { login, register, googleAuth, googleComplete, saveToken, saveUser } from "../services/api";
+import { login, register, googleAuth, googleComplete, saveToken, saveUser, flushPendingScore } from "../services/api";
 import "./LoginRegister.css";
 
 export default function LoginRegister() {
@@ -34,6 +34,7 @@ export default function LoginRegister() {
             saveToken(res.data.token);
             saveUser(res.data.user);
             setSuccess(`¡Bienvenido, ${res.data.user.username}!`);
+            flushPendingScore();
             setTimeout(() => { window.location.href = "/"; }, 1000);
           }
         })
@@ -66,6 +67,7 @@ export default function LoginRegister() {
       saveToken(res.data.token);
       saveUser(res.data.user);
       setSuccess(`¡Bienvenido, ${res.data.user.username}!`);
+      await flushPendingScore();
       setTimeout(() => { window.location.href = "/"; }, 1000);
     } catch (err) {
       setError(err.response?.data?.error || "Error al crear la cuenta.");
@@ -101,6 +103,7 @@ export default function LoginRegister() {
       saveToken(res.data.token);
       saveUser(res.data.user);
       setSuccess(isLogin ? `¡Bienvenido, ${res.data.user.username}!` : "¡Cuenta creada con éxito!");
+      await flushPendingScore();
       setTimeout(() => { window.location.href = "/"; }, 1000);
     } catch (err) {
       setError(err.response?.data?.error || "Error de conexión. Inténtalo de nuevo.");

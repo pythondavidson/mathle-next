@@ -4,7 +4,7 @@ import EQUATIONS from '../data/equations';
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./DailyGame.css";
-import { saveDailyScore, isLoggedIn } from "../services/api";
+import { saveDailyScore, savePendingScore, isLoggedIn } from "../services/api";
 import MobileKeyboard from './MobileKeyboard';
 
 const DAILY_EQUATIONS = EQUATIONS.filter(e => e.difficulty === "avanzado" && e.blanks.length === 6);
@@ -385,6 +385,9 @@ export default function DailyGame() {
     if (isLoggedIn()) {
       saveDailyScore(todayKey(), finalAttempts, points, didWin)
         .catch(err => console.log("Error guardando daily score:", err));
+    } else {
+      // Guardar pendiente para cuando el usuario se registre o inicie sesión
+      savePendingScore({ type: "daily", date: todayKey(), attempts: finalAttempts, points, won: didWin });
     }
   }
 

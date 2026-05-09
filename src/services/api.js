@@ -90,4 +90,28 @@ export const googleComplete = (credential, username) =>
 export const googleAuth = (credential) =>
   api.post('/api/auth/google', { credential });
 
+
+// ── PENDING SCORE (para usuarios que juegan antes de registrarse) ──
+export const savePendingScore = (data) => {
+  localStorage.setItem('mathle_pending_score', JSON.stringify(data));
+};
+
+export const flushPendingScore = async () => {
+  const raw = localStorage.getItem('mathle_pending_score');
+  if (!raw) return;
+  try {
+    const pending = JSON.parse(raw);
+    if (pending.type === 'daily') {
+      await saveDailyScore(pending.date, pending.attempts, pending.points, pending.won);
+    } else if (pending.type === 'timed') {
+      await saveTimedScore(pending.points);
+    }
+  } catch (err) {
+    // Si ya existe el score (409) o cualquier otro error, simplemente ignorar
+    console.log('flushPendingScore:', err?.response?.data?.error || err.message);
+  } finally {
+    localStorage.removeItem('mathle_pending_score');
+  }
+};
+
 export default api;
