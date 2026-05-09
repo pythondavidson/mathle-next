@@ -541,6 +541,9 @@
     height: 100dvh;
     overflow: hidden;
   }
+  .game-body {
+    width: 100%;        /* en móvil ocupa todo el ancho */
+  }
   .daily-idle { padding-top: 0px; }
   .eq-frag { font-size: 14px; padding: 0 3px; }
   .cell input { font-size: 18px; }
@@ -578,9 +581,10 @@
 .game-body {
   display: flex;
   flex-direction: column;
-  align-items: stretch;   /* hijos se estiran al 100% del ancho */
-  width: 100%;
-  max-width: 460px;       /* ancho único para grid Y botón */
+  align-items: stretch;
+  width: fit-content;     /* se adapta al ancho real del grid */
+  min-width: 300px;
+  max-width: 100%;
   padding: 0 16px;
   box-sizing: border-box;
   margin: 0 auto;
@@ -611,6 +615,7 @@
   padding: 0;
   width: 100%;
   max-width: none;
+  box-sizing: border-box;
 }
 
 .game-body .btn-verify,
