@@ -62,6 +62,28 @@ function loadDayAttempts() {
   return JSON.parse(localStorage.getItem(`mathleDay-${todayKey()}`) || "[]");
 }
 
+function hasCompletedToday() {
+  const attempts = loadDayAttempts();
+  if (attempts.length === 0) return false;
+  const lastAttempt = attempts[attempts.length - 1];
+  const won = lastAttempt.states.every(s => s === "correct");
+  return won || attempts.length >= MAX_ATTEMPTS;
+}
+
+function handleShareFromIdle() {
+  const dayAttempts = loadDayAttempts();
+  const squares = dayAttempts.map(a =>
+    a.states.map(s => s === "correct" ? "🟩" : s === "close" ? "🟨" : "🟥").join("")
+  ).join("\n");
+  const didWin = dayAttempts.length > 0 &&
+    dayAttempts[dayAttempts.length - 1].states.every(s => s === "correct");
+  const text =
+    `🧮 Mathle — ${todayKey()}\n` +
+    (didWin ? `✅ ${dayAttempts.length}/${MAX_ATTEMPTS}` : `❌ X/${MAX_ATTEMPTS}`) +
+    `\n\n${squares}\n\nmathle.online`;
+  navigator.clipboard.writeText(text).then(() => alert("¡Copiado al portapapeles!"));
+}
+
 export default function DailyGame() {
   const router = useRouter();
 
@@ -381,18 +403,40 @@ export default function DailyGame() {
   const timerClass = seconds >= 120 ? "danger" : seconds >= 60 ? "warning" : "";
 
   if (screen === "idle") {
+    const alreadyDone = hasCompletedToday();
+    const pastAttempts = loadDayAttempts();
+    const didWin = pastAttempts.length > 0 &&
+      pastAttempts[pastAttempts.length - 1].states.every(s => s === "correct");
+
     return (
       <div className="daily-idle">
-        <div className="daily-idle-icon">📅</div>
+        <div className="daily-idle-icon">{alreadyDone ? (didWin ? "✅" : "📐") : "📅"}</div>
         <h1 className="daily-idle-title">Modo Diario</h1>
-        <p className="daily-idle-desc">
-          Una ecuación nueva cada día.<br />
-          Tienes 6 intentos para adivinar<br />
-          los valores exactos.
-        </p>
-        <button className="daily-idle-btn" onClick={() => setScreen("game")}>
-          Empezar
-        </button>
+
+        {alreadyDone ? (
+          <>
+            <p className="daily-idle-desc">
+              {didWin
+                ? <>¡Ya resolviste la ecuación de hoy!<br />Vuelve mañana para una nueva.</>
+                : <>Ya jugaste la ecuación de hoy.<br />Vuelve mañana para intentarlo de nuevo.</>
+              }
+            </p>
+            <button className="daily-idle-btn" onClick={handleShareFromIdle}>
+              ↗ Compartir resultado
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="daily-idle-desc">
+              Una ecuación nueva cada día.<br />
+              Tienes 6 intentos para adivinar<br />
+              los valores exactos.
+            </p>
+            <button className="daily-idle-btn" onClick={() => setScreen("game")}>
+              Empezar
+            </button>
+          </>
+        )}
       </div>
     );
   }
