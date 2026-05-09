@@ -48,7 +48,7 @@ const MODES = [
   },
 ];
 
-const SCORING = [
+const SCORING_TIMED = [
   { label: "Base fácil",    val: "100 pts" },
   { label: "Base medio",    val: "200 pts" },
   { label: "Base difícil",  val: "350 pts" },
@@ -56,6 +56,17 @@ const SCORING = [
   { label: "Combo ×2",      val: "× 1.42" },
   { label: "Combo ×5",      val: "× 1.97" },
   { label: "Combo ×10",     val: "× 2.38" },
+];
+
+const SCORING_DAILY = [
+  { label: "Tiempo ≤ 30 s",   val: "5 000 pts" },
+  { label: "Tiempo = 2 min",  val: "1 000 pts" },
+  { label: "Entre medias",    val: "lineal" },
+  { label: "1.er intento",    val: "× 1.00" },
+  { label: "6.º intento",     val: "× 0.50" },
+  { label: "Racha × 1",       val: "× 1.50" },
+  { label: "Racha × 7",       val: "× 2.00" },
+  { label: "Racha × 31",      val: "× 2.50" },
 ];
 
 export default function ComoJugar() {
@@ -126,14 +137,33 @@ export default function ComoJugar() {
         </div>
       </section>
 
-      {/* PUNTUACIÓN */}
+      {/* PUNTUACIÓN DIARIO */}
       <section className="cj-scoring">
-        <h2 className="cj-section-title">Sistema de puntuación</h2>
+        <h2 className="cj-section-title">Puntuación — Modo Diario</h2>
         <p className="cj-scoring-note">
-          Aplica al Contrareloj y al Duelo. 
+          La puntuación base depende del tiempo, se ajusta por intentos y se multiplica por tu racha.
+        </p>
+        <div className="cj-scoring-formula">
+          <span className="cj-formula-text">puntos = tiempo × intentos × racha</span>
+        </div>
+        <div className="cj-scoring-grid">
+          {SCORING_DAILY.map(s => (
+            <div key={s.label} className="cj-scoring-row">
+              <span className="cj-scoring-label">{s.label}</span>
+              <span className="cj-scoring-val">{s.val}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PUNTUACIÓN CONTRARELOJ / DUELO */}
+      <section className="cj-scoring">
+        <h2 className="cj-section-title">Puntuación — Contrareloj y Duelo</h2>
+        <p className="cj-scoring-note">
+          Cada ecuación suma puntos base más bonus por tiempo. Los combos multiplican el total.
         </p>
         <div className="cj-scoring-grid">
-          {SCORING.map(s => (
+          {SCORING_TIMED.map(s => (
             <div key={s.label} className="cj-scoring-row">
               <span className="cj-scoring-label">{s.label}</span>
               <span className="cj-scoring-val">{s.val}</span>
