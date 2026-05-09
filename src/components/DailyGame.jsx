@@ -59,10 +59,12 @@ function saveAttempt(ans, states) {
   localStorage.setItem(key, JSON.stringify(prev));
 }
 function loadDayAttempts() {
+  if (typeof window === 'undefined') return [];
   return JSON.parse(localStorage.getItem(`mathleDay-${todayKey()}`) || "[]");
 }
 
 function hasCompletedToday() {
+  if (typeof window === 'undefined') return false;
   const attempts = loadDayAttempts();
   if (attempts.length === 0) return false;
   const lastAttempt = attempts[attempts.length - 1];
