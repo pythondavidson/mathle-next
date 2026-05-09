@@ -311,3 +311,19 @@
   .cj-color-row { gap: 6px; }
   .cj-demo-cell { width: 44px; height: 44px; font-size: 20px; }
 }
+
+.cj-scoring-formula {
+  background: rgba(201,168,76,.07);
+  border: 1px solid rgba(201,168,76,.2);
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.cj-formula-text {
+  font-family: 'STIX Two Text', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+}
