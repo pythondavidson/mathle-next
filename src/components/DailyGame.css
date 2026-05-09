@@ -515,6 +515,20 @@
   - 6 celdas × cell + fragments ~120px = debe caber en viewport
   - Con clamp: mínimo 32px, preferido 10vw, máximo 48px
 */
+/* ── DESKTOP FIX — el grid nunca se trunca ─────────────── */
+@media (min-width: 601px) {
+  .grid-wrapper {
+    max-width: 680px;
+    overflow-x: visible;
+  }
+
+  .game-header,
+  .divider,
+  .actions {
+    max-width: 680px;
+  }
+}
+
 @media (max-width: 600px) {
   :root { --cell: clamp(32px, 10vw, 44px); }
   .game-root {
