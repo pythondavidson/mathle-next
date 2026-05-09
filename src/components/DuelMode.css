@@ -154,21 +154,6 @@
 
 /* ── MÓVIL ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* El lobby carga centrado verticalmente porque timed-idle
-     tiene justify-content:center + min-height:100vh.
-     En móvil lo anclamos arriba para que siempre sea visible
-     desde el principio. */
-  .duel-lobby {
-    position: fixed;
-    inset: 0;
-    overflow-y: auto;
-  }
-
-  .duel-lobby .timed-idle {
-    justify-content: flex-start;
-    padding-top: 60px;   /* espacio visual bajo el header (56px) */
-  }
-
   /* Padding jugando reducido en móvil */
   .duel-root--playing {
     padding-top: 70px;

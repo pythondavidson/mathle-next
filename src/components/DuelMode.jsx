@@ -128,6 +128,11 @@ export default function DuelMode() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // Scroll al top cada vez que el lobby es visible
+  useEffect(() => {
+    if (fase === 'lobby') window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [fase]);
+
   useEffect(() => () => {
     socketRef.current?.disconnect();
     clearInterval(countdownRef.current);
@@ -358,7 +363,7 @@ export default function DuelMode() {
 
   // ── LOBBY ────────────────────────────────────────────────
   if (fase === 'lobby') return (
-    <div className="timed-root timed-root--idle duel-lobby">
+    <div className="timed-root timed-root--idle">
       <div className="timed-idle">
         <div className="timed-idle-icon">⚔️</div>
         <h1 className="timed-idle-title">Modo Duelo</h1>
